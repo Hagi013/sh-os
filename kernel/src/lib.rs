@@ -12,7 +12,7 @@ fn hlt() {
     }
 }
 
-#![no_mangle]
+#[no_mangle]
 #[start]
 pub extern fn init_os() {
     loop {
