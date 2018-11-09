@@ -1,7 +1,7 @@
 ; sh-os boot asm
 ; TAB=4
 
-[INSTRSET "i486p"]              ; 486の命令まで使いたいという記述
+; [INSTRSET "i486p"]              ; 486の命令まで使いたいという記述
 
 VBEMODE equ     0x105           ; 1024 x 768 x 8bitカラー
 ; (画面モード一覧)
@@ -27,7 +27,7 @@ VRAM    equ     0x0ff8          ; グラフィックバッファの開始番地
 
 ; VBE存在確認
 
-        mov     ax, 0x90000
+        mov     ax, 0x9000
         mov     es, ax          ; es:diからの512バイトにこのビデオカードで利用できる
         mov     di, 0           ; VBEの情報が書き込まれるので、書き込み場所を指定するために値を入れている
         mov     ax, 0x4f00
@@ -139,7 +139,7 @@ piplineflush:
 ; 先ずはブートセクタから
 
         mov     esi, 0x7c00         ; 転送元
-        mov     edi, DSKAC          ; 転送先
+        mov     edi, DSKCAC         ; 転送先
         mov     ecx, 512/4
         call    memcpy
 
@@ -161,7 +161,7 @@ piplineflush:
         mov     ebx, INITOS
         mov     ecx, [ebx+16]
         add     ecx, 3              ; ecx += 3
-        shr     ecs, 2              ; ecx /= 4;
+        shr     ecx, 2              ; ecx /= 4;
         jz      skip                ; 転送すべきものがない
         mov     esi, [ebx+20]       ; 転送元
         add     esi, ebx
@@ -169,7 +169,7 @@ piplineflush:
         call    memcpy
 skip:
         mov     esp, [ebx+12]       ; スタック初期値
-        jmp     DWORD, 2*8:0x0000001b
+        jmp     DWORD 2*8:0x0000001b    ; .sysのヘッダのjmp命令のある場所へジャンプ(2番目のセグメントの0x001bへジャンプ)
 
 waitkbdout:
         in      al, 0x64
@@ -187,9 +187,10 @@ memcpy:
         ret
 ; memcpyはアドレスサイズプリフィクスを入れ忘れなければ、ストリング命令でもかける
 
-        alignb  16
+        alignb  16, db 0
 GDT0:
-        resb    8                   ; フルセレクタ
+        ; resb    8                   ; フルセレクタ
+        times   8 db 0
         dw      0xffff, 0x0000, 0x9200, 0x00cf  ; 読み書き可能セグメント32bit
         dw      0xffff, 0x0000, 0x9a28, 0x0047  ; 実行可能セグメント32bit(initos用)
 
@@ -198,5 +199,5 @@ GDTR0:
         dw      8*2-1
         dd      GDT0
 
-        alignb  16
+        alignb  16, db 0
 initos:
