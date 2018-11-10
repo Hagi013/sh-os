@@ -32,3 +32,7 @@ $(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
 qemu:
 	# qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
 	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -drive file=$(BUILD_DIR)/$(BUILD_NAME).img, format=raw, if=floppy -monitor stdio
+
+clean:
+	rm -rf ./dist/*
+	rm -rf ./kenel/target
