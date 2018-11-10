@@ -4,10 +4,24 @@ version = "0.1.0"
 authors = ["hagiwara"]
 edition = "2018"
 
-[dependencies]
-
 [lib]
+path = "src/lib.rs"
 crate-type = ["staticlib"]
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
+lto = true
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = true
+
+[dependencies]
+rlibc = "1.0.0"
+compiler_builtins = { git = "https://github.com/rust-lang-nursery/compiler-builtins" }
 
 
 [profile.dev]
