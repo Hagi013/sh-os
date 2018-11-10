@@ -11,7 +11,7 @@ use core::panic::PanicInfo;
 #[no_mangle]
 fn hlt() {
     unsafe {
-        asm!("htl");
+        asm!("hlt");
     }
 }
 
