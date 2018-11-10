@@ -103,7 +103,7 @@ msg:
 
         ; resb    0x7dfe-$      ; 0x7dfe(32254)まで0x00で埋める
         ; resb    32254           ; 0x7dfe(32254)まで0x00で埋める
-        times   32254 db 0
+        times   0x7dfe-0x7c00-($-$$) db 0
 
         db      0x55, 0xaa
 
