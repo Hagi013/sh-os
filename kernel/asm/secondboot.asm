@@ -118,8 +118,8 @@ keystatus:
         and     eax, 0x7fffffff     ; bit31を0にする(ページング禁止のため)
         or      eax, 0x00000001     ; bit0を1にする(プロテクトモード移行のため)
         mov     cr0, eax
-        jmp     piplineflush
-piplineflush:
+        jmp     pipelineflush
+pipelineflush:
         mov     ax, 1*8             ; 読み書き可能セグメント32bit
         mov     ds, ax
         mov     es, ax
@@ -196,7 +196,7 @@ GDT0:
 
         dw      0
 GDTR0:
-        dw      8*2-1
+        dw      8*3-1
         dd      GDT0
 
         alignb  16, db 0
