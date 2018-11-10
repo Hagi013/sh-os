@@ -1,5 +1,5 @@
 [package]
-name = "libshos"
+name = "shos"
 version = "0.1.0"
 authors = ["hagiwara"]
 edition = "2018"
