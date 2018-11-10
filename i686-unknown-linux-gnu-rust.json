@@ -15,5 +15,9 @@
   "linker-is-gnu": true,
   "disable-redzone": true,
   "eliminate-frame-pointer": false,
-  "pre-link-args": [ "-m32" ]
+  "pre-link-args": [ "-m32" ],
+  "executable": false,
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
+  "panic-strategy": "abort"
 }
