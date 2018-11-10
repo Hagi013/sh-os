@@ -23,5 +23,6 @@ pub extern fn init_os() {
 #[lang = "eh_personality"]
 extern fn en_personality() {}
 
+#[no_mangle]
 #[lang = "panic_fmt"]
 extern fn panic_fmt() -> ! { loop{} }
