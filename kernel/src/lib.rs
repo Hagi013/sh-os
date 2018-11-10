@@ -4,7 +4,6 @@
 #![feature(no_std)]
 #![no_std]
 #![feature(asm)]
-#![feature(panic_handler)]
 
 use core::panic::PanicInfo;
 

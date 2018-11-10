@@ -7,7 +7,7 @@ asm:	$(BUILD_DIR_i686)/ipl.bin \
  	$(BUILD_DIR_i686)/secondboot.bin
 
 
-$(BUILD_DIR_i686)/kernel.bin:	./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/asm/kernel.ld
+$(BUILD_DIR_i686)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/asm/kernel.ld
 	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
 
 $(BUILD_DIR_i686)/ipl.bin: ./kernel/asm/ipl.asm
