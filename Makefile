@@ -30,4 +30,5 @@ $(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
 	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
 
 qemu:
-	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
+	# qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
+	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -drive file=$(BUILD_DIR)/$(BUILD_NAME).img, format=raw, if=floppy -monitor stdio
