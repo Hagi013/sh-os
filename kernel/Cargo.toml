@@ -12,7 +12,6 @@ crate-type = ["staticlib"]
 panic = "abort"
 opt-level = 0
 debug = true
-lto = true
 
 [profile.release]
 panic = "abort"
