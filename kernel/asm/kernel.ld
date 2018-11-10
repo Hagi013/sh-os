@@ -8,7 +8,7 @@ ENTRY(init_os)
 OUTPUT_FORMAT("binary")
 
 /* セクション */
-SECTION{
+SECTIONS{
     /* .hrbオブジェクトファイルのフォーマットに従い、ヘッダを定義 */
     .head 0x0 :
     {
