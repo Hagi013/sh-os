@@ -13,4 +13,4 @@ $(BUILD_DIR_i686)/secondboot.bin: ./kernel/asm/secondboot.asm
 
 #kernel
 $(BUILD_DIR_i686)/libshos.a:	$(TARGET_ARCH_i686)-rust.json ./kernel/Cargo.toml ./kernel/src/*.rs
-	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686)-rust --manifest-path ./kernel/Cargo.toml
+	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
