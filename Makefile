@@ -1,6 +1,7 @@
 BUILD_DIR := ./dist
 TARGET_ARCH_i686 := i686-unknown-linux-gnu
 BUILD_NAME := shos-$(TARGET_ARCH_i686)
+QEMU_ARCH_i686 := i386
 
 BUILD_MODE=debug
 
@@ -27,3 +28,6 @@ $(BUILD_DIR_i686)/secondboot.bin: ./kernel/asm/secondboot.asm
 #kernel
 $(BUILD_DIR_i686)/libshos.a:	$(TARGET_ARCH_i686)-rust.json ./kernel/Cargo.toml ./kernel/src/*.rs
 	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
+
+qemu:
+	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR_i686)/$(BUILD_NAME).img -monitor stdio
