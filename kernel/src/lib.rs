@@ -16,9 +16,7 @@ fn hlt() {
 #[no_mangle]
 #[start]
 pub extern fn init_os() {
-    loop {
-        hlt()
-    }
+    loop {}
 }
 
 #[lang = "eh_personality"]
