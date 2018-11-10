@@ -9,11 +9,11 @@ asm:	$(BUILD_DIR)/ipl.bin \
  	$(BUILD_DIR)/secondboot.bin
 
 # make image file
-$(BUILD_DIR)/$(BUILD_NAME).img: $(BUILD_DIR)/ipl.bin $(BUILD_DIR_i686)/$(BUILD_NAME).sys Makefile
+$(BUILD_DIR)/$(BUILD_NAME).img: $(BUILD_DIR)/ipl.bin $(BUILD_DIR)/$(BUILD_NAME).sys Makefile
 	mformat -f 1440 -C -B $(BUILD_DIR)/ipl.bin -i $(BUILD_DIR)/$(BUILD_NAME).img ::
 	mcopy -i $(BUILD_DIR)/$(BUILD_NAME).img $(BUILD_DIR)/$(BUILD_NAME).sys ::
 
-$(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR_i686)/kernel.bin $(BUILD_DIR_i686)/secondboot.bin
+$(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/secondboot.bin
 	cat $(BUILD_DIR)/secondboot.bin $(BUILD_DIR)/kernel.bin > $(BUILD_DIR)/$(BUILD_NAME).sys
 
 $(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/asm/kernel.ld
