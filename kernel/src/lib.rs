@@ -6,10 +6,10 @@
 
 use core::panic::PanicInfo;
 
-#[no_mangle]
+#[cfg(any(target = "x86"))]
 fn hlt() {
     unsafe {
-        asm!("hlt");
+        asm!("hlt" :::: "intel");
     }
 }
 
