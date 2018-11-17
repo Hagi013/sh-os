@@ -20,4 +20,11 @@ lto = true
 
 [dependencies]
 rlibc = "1.0.0"
-compiler_builtins = { git = "https://github.com/rust-lang-nursery/compiler-builtins" }
+
+[dependencies.compiler_builtins]
+git = "https://github.com/rust-lang-nursery/compiler-builtins"
+features = ["mem"]
+stage = 1
+
+[target.i686-unknown-linux-gnu.dependencies]
+asm = {path = "asm"}

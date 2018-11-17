@@ -9,7 +9,7 @@
   "os": "none",
   "code-mode": "kernel",
   "relocation-model": "static",
-  "archive-format": "gun",
+  "archive-format": "gnu",
   "target-env": "gnu",
   "no-compiler-rt": false,
   "linker-is-gnu": true,

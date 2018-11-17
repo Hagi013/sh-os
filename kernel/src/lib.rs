@@ -3,24 +3,41 @@
 #![no_main]
 #![no_std]
 #![feature(asm)]
+#![feature(compiler_builtins_lib)]
+
+// 必要でなければ消す
+extern crate rlibc;
+extern crate compiler_builtins;
 
 use core::panic::PanicInfo;
 
-#[cfg(any(target = "x86"))]
-fn hlt() {
-    unsafe {
-        asm!("hlt" :::: "intel");
-    }
-}
+#[allow(unused_imports)]
+#[cfg(all(not(test), target_arch = "x86"))]
+#[macro_use]
+extern crate asm;
+
+use asm::BootInfo;
+use asm::hlt;
 
 #[no_mangle]
 #[start]
 pub extern fn init_os() {
-    loop {}
+    // let bootInfo: BootInfo = BootInfo::new();
+    let mut memory_address = unsafe { *(0x000a0000 as *mut u32) };
+    for i in 0..0xffff {
+        unsafe {
+            let memory: *mut u8 = (memory_address + i) as *mut u8;
+            *memory = (*(i as *mut u8) & 0x0f);
+        }
+    }
+
+    loop {
+        hlt();
+    }
 }
 
 #[lang = "eh_personality"]
-extern fn en_personality() {}
+extern fn eh_personality() {}
 
 #[panic_handler]
 #[no_mangle]
