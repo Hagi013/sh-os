@@ -19,12 +19,6 @@ opt-level = 2
 lto = true
 
 [dependencies]
-rlibc = "1.0.0"
-
-[dependencies.compiler_builtins]
-git = "https://github.com/rust-lang-nursery/compiler-builtins"
-features = ["mem"]
-stage = 1
 
 [target.i686-unknown-linux-gnu.dependencies]
 asm = {path = "asm"}

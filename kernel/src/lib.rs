@@ -2,12 +2,6 @@
 #![feature(start)]
 #![no_main]
 #![no_std]
-#![feature(asm)]
-#![feature(compiler_builtins_lib)]
-
-// 必要でなければ消す
-extern crate rlibc;
-extern crate compiler_builtins;
 
 use core::panic::PanicInfo;
 
@@ -23,16 +17,16 @@ use asm::hlt;
 #[start]
 pub extern fn init_os() {
     // let bootInfo: BootInfo = BootInfo::new();
-    let mut memory_address = unsafe { *(0x000a0000 as *mut u32) };
-    for i in 0..0xffff {
-        unsafe {
-            let memory: *mut u8 = (memory_address + i) as *mut u8;
-            *memory = (*(i as *mut u8) & 0x0f);
-        }
-    }
+//    let mut memory_address = unsafe { *(0x000a0000 as *mut u32) };
+//    for i in 0..0xffff {
+//        unsafe {
+//            let memory: *mut u8 = (memory_address + i) as *mut u8;
+//            *memory = (*(i as *mut u8) & 0x0f);
+//        }
+//    }
 
     loop {
-        hlt();
+//        hlt();
     }
 }
 
