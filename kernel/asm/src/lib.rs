@@ -32,7 +32,7 @@ impl BootInfo {
     }
 
     // 後で移動する必要がありそう
-    fn draw_fonts_on_back(&self, x: &u32, y: &u32, color: u8, font: *mut u16) {
+    pub fn draw_fonts_on_back(&self, x: &u32, y: &u32, color: u8, font: *mut u16) {
         for i in 0..15 {
             unsafe {
                 let p: *mut u8 = (self.vram + (y + i) * (self.scrnx as u32) + x) as *mut u8; /* VRAMと画面上の点との関係 [VRAM] + x + y * xsize(screenの横幅) */
@@ -51,7 +51,7 @@ impl BootInfo {
 }
 
 pub extern fn hlt() {
-    unsafe{
+    unsafe {
         io_hlt();
     }
 }
