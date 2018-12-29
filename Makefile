@@ -30,7 +30,8 @@ $(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
 	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/asm/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
 
 #kernel
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
+#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
+./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/src/arch/*.rs ./kernel/asm/src/*.rs
 #./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
 #./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
 #	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
@@ -39,7 +40,8 @@ $(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
 #	rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
 
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/asmfunc.asm
-	nasm -f elf32 ./kernel/asm/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
+#	nasm -f elf32 ./kernel/asm/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
+	nasm -f elf32 ./kernel/src/arch/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
 #./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
 #./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
 #	nasm -f elf32 ./kernel/asm/$*.asm -o ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst

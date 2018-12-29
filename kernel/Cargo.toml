@@ -19,6 +19,3 @@ opt-level = 2
 lto = true
 
 [dependencies]
-
-[target.i686-unknown-linux-gnu.dependencies]
-asm = {path = "asm"}
