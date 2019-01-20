@@ -6,6 +6,7 @@ ENTRY(init_os)
 
 /* 出力フォーマット */
 OUTPUT_FORMAT("binary")
+/* OUTPUT_FORMAT("elf32-i386") */
 
 /* セクション */
 SECTIONS{
@@ -32,7 +33,8 @@ SECTIONS{
     }
 
     /* dataセクションのメモリ開始位置 */
-    .data 0x00000400:
+    /* .data 0x00000400: */
+    .data 0x310000:
     /* .data */
 
     /* .dataセクションのファイル上の開始位置 */
@@ -52,5 +54,5 @@ SECTIONS{
     }
 
     /* 上記以外のセクションは無視する */
-    /DISCARD/ : {*(*)}
+    /* /DISCARD/ : {*(*)} */
 }

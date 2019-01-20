@@ -17,34 +17,24 @@ $(BUILD_DIR)/$(BUILD_NAME).img: $(BUILD_DIR)/ipl.bin $(BUILD_DIR)/$(BUILD_NAME).
 $(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/secondboot.bin
 	cat $(BUILD_DIR)/secondboot.bin $(BUILD_DIR)/kernel.bin > $(BUILD_DIR)/$(BUILD_NAME).sys
 
-$(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o ./kernel/asm/kernel.ld
-#$(BUILD_DIR)/kernel.bin: ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o ./kernel/asm/kernel.ld
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
-	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) --ignore-unresolved-symbol -lshos -Map $(BUILD_DIR)/kernel.map
+#$(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o kernel/boot
+#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
+$(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a kernel/boot
+#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
+	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
 
-$(BUILD_DIR)/ipl.bin: ./kernel/asm/ipl.asm
-	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/asm/ipl.asm -l $(BUILD_DIR)/ipl.lst
+$(BUILD_DIR)/ipl.bin: kernel/boot
+	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/boot/ipl.asm -l $(BUILD_DIR)/ipl.lst
 
-$(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
-	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/asm/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
+$(BUILD_DIR)/secondboot.bin: kernel/boot
+	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/boot/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
 
 #kernel
-#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/src/arch/*.rs ./kernel/asm/src/*.rs
-#./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-#	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
-#	cd ${KERNEL_DIR}; rustup run nightly `which cross` build -v --target $(TARGET_ARCH_i686)
+./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
 	cd ${KERNEL_DIR}; rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
-#	rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
 
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/asmfunc.asm
-#	nasm -f elf32 ./kernel/asm/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
-	nasm -f elf32 ./kernel/src/arch/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
-#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
-#./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
-#	nasm -f elf32 ./kernel/asm/$*.asm -o ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
+#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/src/arch/asmfunc.asm
+#	nasm -f elf32 ./kernel/src/arch/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
 
 qemu:
 	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
@@ -52,8 +42,6 @@ qemu:
 clean:
 	rm -rf ./dist/*
 	rm -rf ./target
-#	cargo clean
-#	xargo clean
 	cd ./kernel && cargo clean
 	cd ./kernel && xargo clean
 
