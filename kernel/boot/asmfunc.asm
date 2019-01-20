@@ -84,7 +84,7 @@ load_gdtr:  ; load_gdtr(limit: u32, addr: u32)
 load_idtr:  ; load_idtr(limit: u32, addr: u32)
     mov     ax, [esp+4]
     mov     [esp+6], ax
-    lgdt    [esp+6]
+    lidt    [esp+6]
     ret
 
 load_cr0:   ; load_cr0(void) -> u32

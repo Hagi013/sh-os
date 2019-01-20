@@ -1,5 +1,0 @@
-[package]
-name = "asm"
-version = "0.1.0"
-authors = ["hagiwara"]
-edition = "2018"
