@@ -37,7 +37,7 @@ VRAM    equ     0x0ff8          ; グラフィックバッファの開始番地
         jne     scrn320
 
 ; VBEのバージョンチェック
-        jmp     scrn320
+
         mov     ax, [es:di+4]
         cmp     ax, 0x0200      ; VBEのバージョンが2に満たなかった場合
         jb      scrn320         ; if (ax < 0x200) goto scrn320
