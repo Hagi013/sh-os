@@ -24,21 +24,6 @@ pub extern fn init_os() {
     let graphic: Graphic = Graphic::new(BootInfo::new());
     graphic.init_screen();
 
-    let mut address = 0x000a0000 as u32;
-    let raw = &mut address as *mut u32;
-    let memory_address: u32 = unsafe { *raw };
-
-//        for i in 0..0xfffffff {
-////    for i in 0..(0xbffff - address) {
-//        unsafe {
-//            let memory: *mut u8 = (memory_address + i) as *mut u8;
-////            *memory = (*(i as *mut u8) & 0x0f);
-////            *memory = (*(i as *mut u8));
-////                *memory = 0x4d;
-//            *memory = 0x0f;
-//        }
-//    }
-
     loop {
         asmfunc::io_hlt();
     }

@@ -4,6 +4,8 @@ use core::slice::Iter;
 
 use super::asmfunc;
 use super::boot_info::BootInfo;
+use super::io_load_eflags;
+use super::io_store_eflags;
 
 pub struct Graphic {
     boot_info: BootInfo,
@@ -23,6 +25,7 @@ impl Graphic {
     fn set_palette() {
         // 割り込み許可フラグの値を記録する
         let eflags: u32 = asmfunc::io_load_eflags();
+//        let eflags: u32 = unsafe { return io_load_eflags() };
         asmfunc::io_cli(); // 割り込みを禁止する
         asmfunc::io_out8(0x03c8, 0);
 
@@ -31,23 +34,10 @@ impl Graphic {
             asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as i32);
             asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as i32);
         }
-        asmfunc::io_store_eflags(eflags);
+         asmfunc::io_store_eflags(eflags);
     }
 
     pub fn init_screen(&self) {
-//        let mut address = 0x000a0000 as u32;
-//        let raw = &mut address as *mut u32;
-//        let memory_address: u32 = unsafe { *raw };
-//
-//        for y in 0..100 {
-//            for x in 0..100 {
-//                let valid_x = if 100 + x > self.boot_info.scrnx { 300 } else { 100 + x };
-//                let valid_y = if 100 + y > self.boot_info.scrny { 240 } else { 100 + y };
-//                let address: *mut u8 = (memory_address + (valid_y as u32 * 300) + valid_x as u32) as *mut u8;
-//                unsafe { *address = 0x0f; }
-//            }
-//        }
-
         let x: &u16 = &self.boot_info.scrnx;
         let y: &u16 = &self.boot_info.scrny;
 
