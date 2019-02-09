@@ -43,8 +43,8 @@ impl Graphic {
 
         self.boxfill(RGB::DarkLightBlue.palette_no(), 0, 0,      x - 1, y - 29);
         self.boxfill(RGB::Gray.palette_no(),          0, y - 28, x - 1, y - 28);
-        self.boxfill(RGB::DarkLightBlue.palette_no(), 0, y - 27, x - 1, y - 27);
-        self.boxfill(RGB::DarkLightBlue.palette_no(), 0, y - 26, x - 1, y -  1);
+        self.boxfill(RGB::White.palette_no(),         0, y - 27, x - 1, y - 27);
+        self.boxfill(RGB::Gray.palette_no(),          0, y - 26, x - 1, y -  1);
 
         self.boxfill(RGB::White.palette_no(),         3, y - 24,    59, y - 24);
         self.boxfill(RGB::White.palette_no(),         2, y - 24,     2, y -  4);
