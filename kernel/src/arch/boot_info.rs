@@ -44,8 +44,3 @@ impl BootInfo {
         }
     }
 }
-
-//    let mut bootInfo: BootInfo = BootInfo::new();
-//    let i: &[u8] = b"a";
-//    bootInfo.draw_fonts_on_back(100, 200, 7, i);
-

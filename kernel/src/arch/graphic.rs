@@ -4,8 +4,6 @@ use core::slice::Iter;
 
 use super::asmfunc;
 use super::boot_info::BootInfo;
-use super::io_load_eflags;
-use super::io_store_eflags;
 
 pub struct Graphic {
     boot_info: BootInfo,
@@ -25,7 +23,6 @@ impl Graphic {
     fn set_palette() {
         // 割り込み許可フラグの値を記録する
         let eflags: u32 = asmfunc::io_load_eflags();
-//        let eflags: u32 = unsafe { return io_load_eflags() };
         asmfunc::io_cli(); // 割り込みを禁止する
         asmfunc::io_out8(0x03c8, 0);
 
