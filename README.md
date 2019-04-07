@@ -52,6 +52,12 @@ readelf -x 4 ./kernel/target/i686-unknown-linux-gnu/debug/libshos.a
 od -t x1z -A x ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
 ```
 
+## linker
+- linkerについてのman的なもの
+```sh
+info ld scripts
+```
+
 ## qemu
 ### block deviceの確認
 ```
@@ -89,7 +95,19 @@ print /x $cs * 16 + $eip
 print /d $cs * 16 + $eip
 ```
 
-
+## GDB
+- qemuを立ち上げてGDBでデバッグする
+[参考](http://yuyubu.hatenablog.com/entry/2018/07/17/QEMUにGDBを繋げてhariboteOSをデバッグする方法)
+```
+# Makefileのコメントアウトを外す
+DEBUG := -S -gdb tcp::9000
+```
+- gdbを立ち上げる
+```sh
+> gdb
+(gdb) target remote localhost:9000
+(gdb) continueなど
+```
 
 
 

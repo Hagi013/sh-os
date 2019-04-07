@@ -6,6 +6,8 @@ QEMU_ARCH_i686 := i386
 
 BUILD_MODE=debug
 
+DEBUG := -S -gdb tcp::9000
+
 asm:	$(BUILD_DIR)/ipl.bin \
  	$(BUILD_DIR)/secondboot.bin
 
@@ -31,13 +33,14 @@ $(BUILD_DIR)/secondboot.bin: kernel/boot
 
 #kernel
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
-	cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
+	# cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
+	cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) -v
 
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/boot/asmfunc.asm
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
 
 qemu:
-	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
+	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio $(DEBUG)
 
 clean:
 	rm -rf ./dist/*

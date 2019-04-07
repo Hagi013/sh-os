@@ -1,7 +1,7 @@
 ; sh-ipl
 ; TAB=4
 
-cyls    equ     10               ; どこまで読み込むか
+cyls    equ     0x0a             ; どこまで読み込むか
 
         org     0x7c00           ; このプログラムがどこに読み込まれるか
 
