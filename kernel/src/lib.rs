@@ -13,17 +13,17 @@ use core::panic::PanicInfo;
 #[macro_use]
 pub mod arch;
 
-//use self::arch::boot_info::BootInfo;
-//use self::arch::graphic::Graphic;
+use self::arch::boot_info::BootInfo;
+use self::arch::graphic::Graphic;
 use self::arch::asmfunc;
 //use self::arch::hankaku;
 
 #[start]
 #[no_mangle]
 pub extern fn init_os() {
-//     Graphic::init();
-//     let graphic: Graphic = Graphic::new(BootInfo::new());
-//     graphic.init_screen();
+     Graphic::init();
+     let graphic: Graphic = Graphic::new(BootInfo::new());
+     graphic.init_screen();
 
     loop {
         asmfunc::io_hlt();
