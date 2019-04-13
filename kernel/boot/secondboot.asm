@@ -1,14 +1,15 @@
-; sh-os boot asm
+; sh-os boot
 ; TAB=4
 
 ; [INSTRSET "i486p"]              ; 486の命令まで使いたいという記述
 
-VBEMODE equ     0x105           ; 1024 x 768 x 8bitカラー
+VBEMODE equ     0x107             ; 1024 x 768 x 8bitカラー
 ; (画面モード一覧)
 ; 0x100 :   640  x  400 x 8bitカラー
 ; 0x100 :   640  x  480 x 8bitカラー
 ; 0x100 :   800  x  600 x 8bitカラー
 ; 0x100 :   1014 x  768 x 8bitカラー
+; 0x105 :   1024 x 768 x 8bitカラー
 ; 0x107 :   1200 x 1024 x 8bitカラー
 
 INITOS  equ     0x00280000      ; OS本体部分のロード先
@@ -36,7 +37,7 @@ VRAM    equ     0x0ff8          ; グラフィックバッファの開始番地
         jne     scrn320
 
 ; VBEのバージョンチェック
-
+        jmp     scrn320
         mov     ax, [es:di+4]
         cmp     ax, 0x0200      ; VBEのバージョンが2に満たなかった場合
         jb      scrn320         ; if (ax < 0x200) goto scrn320

@@ -7,6 +7,8 @@ QEMU_ARCH_i686 := i386
 # BUILD_MODE=debug
 BUILD_MODE=release
 
+DEBUG := -S -gdb tcp::9000
+
 asm:	$(BUILD_DIR)/ipl.bin \
  	$(BUILD_DIR)/secondboot.bin
 
@@ -18,57 +20,30 @@ $(BUILD_DIR)/$(BUILD_NAME).img: $(BUILD_DIR)/ipl.bin $(BUILD_DIR)/$(BUILD_NAME).
 $(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/secondboot.bin
 	cat $(BUILD_DIR)/secondboot.bin $(BUILD_DIR)/kernel.bin > $(BUILD_DIR)/$(BUILD_NAME).sys
 
-<<<<<<< Updated upstream
-$(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o ./kernel/asm/kernel.ld
-#$(BUILD_DIR)/kernel.bin: ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o ./kernel/asm/kernel.ld
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
-	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/asm/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) --ignore-unresolved-symbol -lshos -Map $(BUILD_DIR)/kernel.map
-=======
 $(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o kernel/boot
-	# $(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
-	# $(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
-	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o -lshos -Map $(BUILD_DIR)/kernel.map
->>>>>>> Stashed changes
+#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
+	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
 
-$(BUILD_DIR)/ipl.bin: ./kernel/asm/ipl.asm
-	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/asm/ipl.asm -l $(BUILD_DIR)/ipl.lst
+$(BUILD_DIR)/ipl.bin: kernel/boot
+	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/boot/ipl.asm -l $(BUILD_DIR)/ipl.lst
 
-$(BUILD_DIR)/secondboot.bin: ./kernel/asm/secondboot.asm
-	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/asm/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
+$(BUILD_DIR)/secondboot.bin: kernel/boot
+	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/boot/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
 
 #kernel
-<<<<<<< Updated upstream
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-#./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs ./kernel/asm/src/*.rs
-#	RUST_TARGET_PATH=$(pwd)	rustup run nightly `which cargo` build -v --target=$(TARGET_ARCH_i686) --manifest-path ./kernel/Cargo.toml
-#	cd ${KERNEL_DIR}; rustup run nightly `which cross` build -v --target $(TARGET_ARCH_i686)
-	cd ${KERNEL_DIR}; rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
-#	rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
-
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/asmfunc.asm
-	nasm -f elf32 ./kernel/asm/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
-#./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
-#./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/asm/%.asm
-#	nasm -f elf32 ./kernel/asm/$*.asm -o ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
-=======
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
 	# cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
-	cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) --release -v
+	cd ${KERNEL_DIR}; rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) --release -v
 
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/boot/asmfunc.asm
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
->>>>>>> Stashed changes
 
 qemu:
-	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio
+	qemu-system-$(QEMU_ARCH_i686) -m 32 -localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio $(DEBUG)
 
 clean:
 	rm -rf ./dist/*
 	rm -rf ./target
-#	cargo clean
-#	xargo clean
 	cd ./kernel && cargo clean
 	cd ./kernel && xargo clean
 

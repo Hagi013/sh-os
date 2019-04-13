@@ -19,12 +19,7 @@ opt-level = 3
 lto = true
 
 [dependencies]
-<<<<<<< Updated upstream
-
-[target.i686-unknown-linux-gnu.dependencies]
-asm = {path = "asm"}
-=======
 [dependencies.compiler_builtins]
 features = ["mem"]
 stage = 1
->>>>>>> Stashed changes
+

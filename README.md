@@ -2,11 +2,19 @@
 ## Object Dump
 ```
 objdump -t -D  ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
+
+# intelで対応するソースコード
+gobjdump -d -S -M intel ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-fa391831c105a91e.a > ./sh-os.obj
+```
+
+### 実行形式の確認
+```
+gobjdump -h -p ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-fa391831c105a91e.a > ./sh-os.obj
 ```
 
 ## nm
-```$xslt
-nm values ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
+```
+nm ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
 ```
 
 ## readelf
@@ -14,13 +22,92 @@ nm values ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa7
 ```
 readelf -h ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
 ```
-### ELB Section Headerの確認
+### ELF Section Headerの確認
 ```
 readelf -S ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
 ```
 
+### ELF Program Headerの確認
+```
+readelf -l ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
+```
+
+### ELFのSymbolテーブルの確認
+```
+readelf -s ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
+```
+
+### ELFのリロケーションテーブルの確認
+```
+readelf -r ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
+```
+
+### 4番目のsection headerを確認する
+```
+readelf -x 4 ./kernel/target/i686-unknown-linux-gnu/debug/libshos.a
+```
+
 ### odコマンド
-```$xslt
+```
 od -t x1z -A x ./kernel/target/i686-unknown-linux-gnu/debug/deps/libshos-3935fdfd4fa79821.a
 ```
+
+## linker
+- linkerについてのman的なもの
+```sh
+info ld scripts
+```
+
+## qemu
+### block deviceの確認
+```
+info block
+```
+
+### registerの内容の確認
+```
+info registers
+```
+
+### memory mappingの確認
+```
+info mem
+```
+
+### メモリの中身の確認
+```
+# 100byte分
+xp /100xb 0x7c00
+
+# アセンブリで表示
+xp /100i 0x7c00
+
+```
+
+### 現在実行中のコードを確認
+```
+xp /16i $eip
+
+# 実行中のコードの物理アドレス
+print /x $cs * 16 + $eip
+
+# 10進数
+print /d $cs * 16 + $eip
+```
+
+## GDB
+- qemuを立ち上げてGDBでデバッグする
+[参考](http://yuyubu.hatenablog.com/entry/2018/07/17/QEMUにGDBを繋げてhariboteOSをデバッグする方法)
+```
+# Makefileのコメントアウトを外す
+DEBUG := -S -gdb tcp::9000
+```
+- gdbを立ち上げる
+```sh
+> gdb
+(gdb) target remote localhost:9000
+(gdb) continueなど
+```
+
+
 
