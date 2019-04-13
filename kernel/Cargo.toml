@@ -10,15 +10,21 @@ crate-type = ["staticlib"]
 
 [profile.dev]
 panic = "abort"
-opt-level = 2
+opt-level = 3
 debug = true
 
 [profile.release]
 panic = "abort"
-opt-level = 2
+opt-level = 3
 lto = true
 
 [dependencies]
+<<<<<<< Updated upstream
 
 [target.i686-unknown-linux-gnu.dependencies]
 asm = {path = "asm"}
+=======
+[dependencies.compiler_builtins]
+features = ["mem"]
+stage = 1
+>>>>>>> Stashed changes

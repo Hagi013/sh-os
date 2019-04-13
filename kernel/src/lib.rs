@@ -4,6 +4,7 @@
 
 use core::panic::PanicInfo;
 
+<<<<<<< Updated upstream
 //#[allow(unused_imports)]
 //#[cfg(all(not(test), target_arch = "x86"))]
 //#[macro_use]
@@ -11,10 +12,22 @@ use core::panic::PanicInfo;
 //
 //use asm::BootInfo;
 //use asm::hlt;
+=======
+#[allow(unused_imports)]
+#[cfg(all(not(test), target_arch = "x86"))]
+#[macro_use]
+pub mod arch;
+
+use self::arch::boot_info::BootInfo;
+use self::arch::graphic::Graphic;
+use self::arch::asmfunc;
+//use self::arch::hankaku;
+>>>>>>> Stashed changes
 
 #[start]
 #[no_mangle]
 pub extern fn init_os() {
+<<<<<<< Updated upstream
 //    let bootInfo: BootInfo = BootInfo::new();
 //    let mut i = 20;
 //    let c = &i;
@@ -30,6 +43,12 @@ pub extern fn init_os() {
             *memory = (*(i as *mut u8) & 0x0f);
         }
     }
+=======
+     Graphic::init();
+     let graphic: Graphic = Graphic::new(BootInfo::new());
+     graphic.init_screen();
+
+>>>>>>> Stashed changes
     loop {
 //        hlt();
     }
