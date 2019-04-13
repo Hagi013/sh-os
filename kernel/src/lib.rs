@@ -16,7 +16,7 @@ pub mod arch;
 use self::arch::boot_info::BootInfo;
 use self::arch::graphic::Graphic;
 use self::arch::asmfunc;
-//use self::arch::hankaku;
+use self::arch::hankaku;
 
 #[start]
 #[no_mangle]

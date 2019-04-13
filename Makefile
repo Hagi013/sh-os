@@ -21,11 +21,8 @@ $(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/secondboot.
 	cat $(BUILD_DIR)/secondboot.bin $(BUILD_DIR)/kernel.bin > $(BUILD_DIR)/$(BUILD_NAME).sys
 
 $(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o kernel/boot
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
-#	$(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a kernel/boot
-#	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
 #	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
-	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
+	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
 
 $(BUILD_DIR)/ipl.bin: kernel/boot
 	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/boot/ipl.asm -l $(BUILD_DIR)/ipl.lst

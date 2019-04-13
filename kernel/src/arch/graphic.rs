@@ -9,14 +9,14 @@ use super::hankaku::Hankaku;
 
 pub struct Graphic {
     boot_info: BootInfo,
-//    hankaku: [u8; 4096]
+    hankaku: [u8; 4096],
 }
 
 impl Graphic {
     pub fn new(bi: BootInfo) -> Self {
         Graphic {
             boot_info: bi,
-//            hankaku: Hankaku::new().get_fonts(),
+            hankaku: Hankaku::new().get_fonts(),
         }
     }
 
