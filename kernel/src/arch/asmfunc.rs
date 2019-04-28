@@ -28,7 +28,7 @@ pub fn io_stihlt() {
 }
 
 pub fn io_in8(port: i32) -> i32 {
-    let res: i32;
+    let mut res: i32 = 0;
     unsafe {
         asm!("
         mov eax, 0
@@ -54,7 +54,7 @@ pub fn io_out8(port: i32, data: i32) {
 }
 
 pub fn io_load_eflags() -> u32 {
-    let eflags: u32;
+    let mut eflags: u32 = 0;
     unsafe {
         asm!("
         pushfd
@@ -108,7 +108,7 @@ pub fn load_idtr(limit: u32, addr: u32) {
 }
 
 pub fn load_cr0() -> u32 {
-    let cr0: u32;
+    let mut cr0: u32 = 0;
     unsafe {
         asm!("
         mov eax, cr0
