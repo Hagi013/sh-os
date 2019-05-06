@@ -22,7 +22,7 @@ $(BUILD_DIR)/$(BUILD_NAME).sys: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/secondboot.
 
 $(BUILD_DIR)/kernel.bin: ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o kernel/boot
 #	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map -noinhibit-exec
-	$(TARGET_ARCH_i686)-ld --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map
+	$(TARGET_ARCH_i686)-ld --print-gc-sections --gc-sections -t -nostdlib -Tdata=0x00310000 -T ./kernel/boot/kernel.ld -o $(BUILD_DIR)/kernel.bin ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/asmfunc.o --library-path=./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE) -lshos -Map $(BUILD_DIR)/kernel.map --verbose
 
 $(BUILD_DIR)/ipl.bin: kernel/boot
 	nasm -f bin -o $(BUILD_DIR)/ipl.bin ./kernel/boot/ipl.asm -l $(BUILD_DIR)/ipl.lst
@@ -31,9 +31,9 @@ $(BUILD_DIR)/secondboot.bin: kernel/boot
 	nasm -f bin -o $(BUILD_DIR)/secondboot.bin ./kernel/boot/secondboot.asm -l $(BUILD_DIR)/secondboot.lst
 
 #kernel
-./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: $(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
-	# cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-no-pie" rustup run nightly `which xargo` build --target $(TARGET_ARCH_i686) -v
-	cd ${KERNEL_DIR}; rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) --release -v
+./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: ./kernel/$(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
+	# cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-fno-PIC" rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) --release -v
+	cd ${KERNEL_DIR}; RUST_TARGET_PATH=$(PWD); rustup run nightly `which cargo` xbuild --target $(TARGET_ARCH_i686).json --release -v
 
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/boot/asmfunc.asm
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst

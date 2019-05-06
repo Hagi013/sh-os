@@ -25,11 +25,12 @@ SECTIONS{
     }
 
     /* .textセクションのメモリ開始位置 */
-    .text ADDR(.head) + SIZEOF(.head) : SUBALIGN(1)
+    .text ADDR(.head) + SIZEOF(.head) : SUBALIGN(4)
     {
         /* textセクション全部を含む */
         *(.text.init_os)
         *(.text*)
+        KEEP(*(.text*))
     }
 
     /* dataセクションのメモリ開始位置 */
@@ -54,5 +55,5 @@ SECTIONS{
     }
 
     /* 上記以外のセクションは無視する */
-    /* /DISCARD/ : {*(*)} */
+    /DISCARD/ : {*(*)}
 }

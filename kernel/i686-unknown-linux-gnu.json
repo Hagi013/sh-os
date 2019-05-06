@@ -15,7 +15,7 @@
   "disable-redzone": true,
   "eliminate-frame-pointer": false,
   "pre-link-args": {
-    "ld.lld": [ "-m32" ]
+    "ld.lld": [ "-m32", "-fno-pie"]
   },
   "executables": false,
   "linker-flavor": "ld.lld",

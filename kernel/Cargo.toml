@@ -19,6 +19,7 @@ opt-level = 3
 lto = true
 
 [dependencies]
+
 [dependencies.compiler_builtins]
 features = ["mem"]
 stage = 1

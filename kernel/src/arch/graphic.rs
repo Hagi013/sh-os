@@ -60,7 +60,7 @@ impl Graphic {
         self.boxfill(RGB::White.palette_no(),    x -  3, y - 24, x - 3, y -  3);
     }
 
-    fn boxfill(&self, color: u8, from_x: u16, from_y: u16, to_x:u16, to_y: u16) {
+    fn boxfill(&self, color: u8, from_x: u16, from_y: u16, to_x: u16, to_y: u16) {
         for y in from_y..to_y {
             for x in from_x..to_x {
                 let address: *mut u8 = (self.boot_info.vram + ((y * self.boot_info.scrnx) + x) as u32) as *mut u8;
@@ -69,6 +69,44 @@ impl Graphic {
         }
     }
 
+    // ToDo ここのsについて、どう渡すかを後で考える
+//    pub fn putfont_asc(&self, x: u16, y: u16, c: u8, s: *mut u8) {
+//        let mut idx: isize = 0;
+//        unsafe {
+//            while *s.offset(&idx) != 0x00 {
+//                self.putfont(&(&x + (8 * &idx)), &y, &c, s.offset(&idx * 16));
+//                idx += 1;
+//            }
+//        }
+//    }
+    pub fn putfont_asc(&self, x: u16, y: u16, c: u8) {
+        let mut idx: isize = 0x5a;
+        self.putfont(&x, &y, &c, (&idx * 16) as usize);
+    }
+
+//    fn putfont(&self, x: &u16, y: &u16, c: &u8, font_ptr: u8) {
+    fn putfont(&self, x: &u16, y: &u16, c: &u8, font_ptr: usize) {
+        // let idx: usize = 0x10;
+        self.putfont_color(x, y, c, font_ptr);
+    }
+
+    // #[inline(always)]
+    fn putfont_color(&self, x: &u16, y: &u16, c: &u8, idx: usize) {
+        for i in 0..16 {
+            let mut address = (self.boot_info.vram + ((y + i) * self.boot_info.scrnx + x) as u32) as *mut u8;
+            let d: u8 = self.hankaku[idx + i as usize];
+            unsafe {
+                if (d & 0x80) != 0 { *(address.offset(0)) = *c }
+                if (d & 0x40) != 0 { *(address.offset(1)) = *c }
+                if (d & 0x20) != 0 { *(address.offset(2)) = *c }
+                if (d & 0x10) != 0 { *(address.offset(3)) = *c }
+                if (d & 0x08) != 0 { *(address.offset(4)) = *c }
+                if (d & 0x04) != 0 { *(address.offset(5)) = *c }
+                if (d & 0x02) != 0 { *(address.offset(6)) = *c }
+                if (d & 0x01) != 0 { *(address.offset(7)) = *c }
+            }
+        }
+    }
 }
 
 enum RGB {
@@ -109,7 +147,6 @@ impl RGB {
             RGB::DarkPurple => RGBElement::new(0x84, 0x00, 0x84),
             RGB::DarkLightBlue => RGBElement::new(0x00, 0x84, 0x84),
             RGB::DarkGray => RGBElement::new(0x84, 0x84, 0x84),
-            _ => RGBElement::new(0x00, 0x00, 0x00),
         }
     }
 
@@ -131,7 +168,6 @@ impl RGB {
             RGB::DarkPurple => 13,
             RGB::DarkLightBlue =>14,
             RGB::DarkGray => 15,
-            _ => 0,
         }
     }
 

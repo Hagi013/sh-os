@@ -25,6 +25,10 @@ pub extern fn init_os() {
      let graphic: Graphic = Graphic::new(BootInfo::new());
      graphic.init_screen();
 
+    graphic.putfont_asc(200, 140, 10);
+    graphic.putfont_asc(210, 140, 10);
+//    graphic.putfont(&x, &y, &c, 0x90);
+//    graphic.putfont(&(&x + 20), &(&y + 10), &c, 0x9a);
     loop {
         asmfunc::io_hlt();
     }
