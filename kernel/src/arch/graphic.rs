@@ -1,4 +1,5 @@
 use core::slice::Iter;
+use core::cell::Cell;
 
 //use alloc::vec::Vec;
 
@@ -10,6 +11,7 @@ use super::hankaku::Hankaku;
 pub struct Graphic {
     boot_info: BootInfo,
     hankaku: [u8; 4096],
+    mouse_buf: Cell<[u8; 256]>,
 }
 
 impl Graphic {
@@ -17,6 +19,7 @@ impl Graphic {
         Graphic {
             boot_info: bi,
             hankaku: Hankaku::new().get_fonts(),
+            mouse_buf: Cell::new([0x0; 256]),   // そもそもここに置くこと自体が正しいかどうかは考えてない
         }
     }
 
@@ -69,26 +72,61 @@ impl Graphic {
         }
     }
 
-    // ToDo ここのsについて、どう渡すかを後で考える
-//    pub fn putfont_asc(&self, x: u16, y: u16, c: u8, s: *mut u8) {
-//        let mut idx: isize = 0;
-//        unsafe {
-//            while *s.offset(&idx) != 0x00 {
-//                self.putfont(&(&x + (8 * &idx)), &y, &c, s.offset(&idx * 16));
-//                idx += 1;
-//            }
-//        }
-//    }
-    pub fn putfont_asc(&self, x: u16, y: u16, c: u8) {
-        let mut idx: isize = 0x5a;
-        self.putfont(&x, &y, &c, (&idx * 16) as usize);
+    pub fn init_mouse_cursor(&self, c: u8) {
+        static MOUSE_CURSOR: [[u8; 16]; 16] = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2],
+            [1,0,0,0,0,0,0,0,0,0,0,1,2,2,2,2],
+            [1,0,0,0,0,0,0,0,0,0,1,2,2,2,2,2],
+            [1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2],
+            [1,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2],
+            [1,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2],
+            [1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2],
+            [1,0,0,0,0,1,1,0,0,0,1,2,2,2,2,2],
+            [1,0,0,0,1,2,2,1,0,0,0,1,2,2,2,2],
+            [1,0,0,1,2,2,2,2,1,0,0,0,1,2,2,2],
+            [1,0,1,2,2,2,2,2,2,1,0,0,0,1,2,2],
+            [1,1,2,2,2,2,2,2,2,2,1,0,0,0,1,2],
+            [1,2,2,2,2,2,2,2,2,2,2,1,0,0,0,1],
+            [2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,1],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1]
+        ];
+
+        let mut mouse_buf: [u8; 256] = self.mouse_buf.get();
+        for (y, cursor_array) in MOUSE_CURSOR.iter().enumerate() {
+            for (x, cursor_char) in cursor_array.iter().enumerate() {
+                if *cursor_char == 1 {
+                    mouse_buf[y * 16 + x] = RGB::Black.palette_no();
+                }
+                if *cursor_char == 0 {
+                    mouse_buf[y * 16 + x] = RGB::White.palette_no();
+                }
+                if *cursor_char == 2 {
+                    mouse_buf[y * 16 + x] = c;
+                }
+            }
+        }
+        self.mouse_buf.set(mouse_buf);
+
+        // ToDo ここは後で移動する
+        let mx = (self.boot_info.scrnx - 16) / 2;   /* 画面中央になるように座標計算 */
+        let my = (self.boot_info.scrny - 28 - 16) / 2;
+        self.putblock(16, 16, mx, my, &mouse_buf as *const u8, 16);
     }
 
-//    fn putfont(&self, x: &u16, y: &u16, c: &u8, font_ptr: u8) {
-    fn putfont(&self, x: &u16, y: &u16, c: &u8, font_ptr: usize) {
-        // let idx: usize = 0x10;
-        self.putfont_color(x, y, c, font_ptr);
+    pub fn putfont_asc(&self, x: u16, y: u16, c: u8, s: &str) {
+        let mut idx: u16 = 0;
+        for byte in s.bytes().into_iter() {
+            self.putfont_color(&(&x + (8 * &idx)), &y, &c, ((byte as u16) * 16) as usize);
+            idx += 1;
+        }
     }
+
+//    pub fn putfont_asc(&self, x: u16, y: u16, c: u8) {
+//        // let mut idx: isize = 0x5a;
+//        let mut idx: isize = 97;
+//        self.putfont(&x, &y, &c, (&idx * 16) as usize);
+//    }
 
     // #[inline(always)]
     fn putfont_color(&self, x: &u16, y: &u16, c: &u8, idx: usize) {
@@ -104,6 +142,17 @@ impl Graphic {
                 if (d & 0x04) != 0 { *(address.offset(5)) = *c }
                 if (d & 0x02) != 0 { *(address.offset(6)) = *c }
                 if (d & 0x01) != 0 { *(address.offset(7)) = *c }
+            }
+        }
+    }
+
+    fn putblock(&self, pxsize: u16, pysize: u16, px0: u16, py0: u16, block_buf: *const u8, bxsize: u16) {
+        for y in 0..pysize {
+            for x in 0..pxsize {
+                let mut address = (self.boot_info.vram + ((py0 + y) * self.boot_info.scrnx + (px0 + x)) as u32) as *mut u8;
+                unsafe {
+                    *address = *block_buf.offset((y * bxsize + x) as isize)
+                }
             }
         }
     }

@@ -21,26 +21,4 @@ impl BootInfo {
             vram:   unsafe   { *((ADR_BOOTINFO + 0x08) as *mut   u32) },
         }
     }
-
-    pub fn draw_fonts_on_back(&self, mut x: u32, y: u32, color: u8, font: &[u8]) {
-        for (i, &c) in font.iter().enumerate() {
-            self.draw_fonts(x, y, color, c);
-            x += 8;
-        }
-    }
-    fn draw_fonts(&self, x: u32, y: u32, color: u8, font: u8) {
-        for i in 0..15 {
-            unsafe {
-                let p: *mut u8 = (self.vram + (y + i) * (self.scrnx as u32) + x) as *mut u8; /* VRAMと画面上の点との関係 [VRAM] + x + y * xsize(screenの横幅) */
-                if (font & 0x80) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x40) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x20) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x10) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x08) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x04) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x02) != 0 { *(p.offset(i as isize)) = color; }
-                if (font & 0x01) != 0 { *(p.offset(i as isize)) = color; }
-            }
-        }
-    }
 }

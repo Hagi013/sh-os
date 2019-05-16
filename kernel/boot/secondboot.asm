@@ -3,7 +3,7 @@
 
 ; [INSTRSET "i486p"]              ; 486の命令まで使いたいという記述
 
-VBEMODE equ     0x107             ; 1024 x 768 x 8bitカラー
+VBEMODE equ     0x105             ; 1024 x 768 x 8bitカラー
 ; (画面モード一覧)
 ; 0x100 :   640  x  400 x 8bitカラー
 ; 0x100 :   640  x  480 x 8bitカラー

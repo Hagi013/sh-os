@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(lang_items, start, asm)]
+#![feature(lang_items, start, asm, const_raw_ptr_deref)]
 //#![feature(alloc)]
 
 //#[macro_use]
@@ -17,6 +17,8 @@ use self::arch::boot_info::BootInfo;
 use self::arch::graphic::Graphic;
 use self::arch::asmfunc;
 use self::arch::hankaku;
+use self::arch::dsctbl;
+use self::arch::pic;
 
 #[start]
 #[no_mangle]
@@ -25,10 +27,13 @@ pub extern fn init_os() {
      let graphic: Graphic = Graphic::new(BootInfo::new());
      graphic.init_screen();
 
-    graphic.putfont_asc(200, 140, 10);
-    graphic.putfont_asc(210, 140, 10);
+    // graphic.putfont_asc(200, 140, 10);
+    graphic.putfont_asc(210, 140, 10, "abcd");
+    graphic.init_mouse_cursor(14);
 //    graphic.putfont(&x, &y, &c, 0x90);
 //    graphic.putfont(&(&x + 20), &(&y + 10), &c, 0x9a);
+    pic::init_pic();
+
     loop {
         asmfunc::io_hlt();
     }
