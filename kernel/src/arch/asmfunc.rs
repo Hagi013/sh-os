@@ -85,7 +85,7 @@ pub fn load_gdtr(limit: u32, addr: u32) {
     let load_address: u32 = limit + addr;
     unsafe {
         asm!("
-        lgdt eax
+        lgdt [eax]
         "
         :
         : "{eax}"(load_address)
@@ -98,7 +98,7 @@ pub fn load_idtr(limit: u32, addr: u32) {
     let load_address: u32 = limit + addr;
     unsafe {
         asm!("
-        lidt eax
+        lidt [eax]
         "
         :
         : "{eax}"(load_address)
@@ -148,7 +148,7 @@ pub fn load_tr(tr: u32) {
 pub fn farjmp(eip: u32, _cs: u32) {
     unsafe {
         asm!("
-        jmp far [exp+4]
+        jmp far [esp+4]
         "
         :
         :
@@ -156,3 +156,58 @@ pub fn farjmp(eip: u32, _cs: u32) {
         : "intel");
     }
 }
+
+//pub fn set_asm_inthandler(handler: *const u32) -> *const u32 {
+//    let f = || asm_inthandler(handler);
+//    return f as *const u32
+//}
+
+//pub fn asm_inthandler(handler: *const u32) {
+//    unsafe {
+//        asm!("
+//            push es
+//            push ds
+//            pushad
+//            mov eax, esp
+//            push eax
+//            mov ax, ss
+//            mov ds, ax
+//            mov es, ax
+//            call %0
+//            pop eax
+//            popad
+//            pop ds
+//            pop es
+//            iret
+//            "
+//            :
+//            : "r"(handler)
+//            :
+//            : "intel")
+//    }
+//}
+
+////pub fn asm_inthandler21() {
+////    unsafe {
+////        asm!("
+////            push es
+////            push ds
+////            pushad
+////            mov eax, esp
+////            push eax
+////            mov ax, ss
+////            mov ds, ax
+////            mov es, ax
+////            call %0
+////            pop eax
+////            popad
+////            pop ds
+////            pop es
+////            iret
+////            "
+////            :
+////            : "r"(handler)
+////            :
+////            : "intel")
+////    }
+//}
