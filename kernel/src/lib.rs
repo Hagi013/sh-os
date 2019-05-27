@@ -15,24 +15,24 @@ pub mod arch;
 
 use self::arch::boot_info::BootInfo;
 use self::arch::graphic::Graphic;
+use self::arch::graphic::MouseGraphic;
 use self::arch::asmfunc;
-use self::arch::hankaku;
-use self::arch::dsctbl;
-use self::arch::pic;
+use self::arch::dsctbl::DscTbl;
+use self::arch::pic::PIC;
 
 #[start]
 #[no_mangle]
 pub extern fn init_os() {
-     Graphic::init();
-     let graphic: Graphic = Graphic::new(BootInfo::new());
-     graphic.init_screen();
 
-    // graphic.putfont_asc(200, 140, 10);
-    graphic.putfont_asc(210, 140, 10, "abcd");
-    graphic.init_mouse_cursor(14);
-//    graphic.putfont(&x, &y, &c, 0x90);
-//    graphic.putfont(&(&x + 20), &(&y + 10), &c, 0x9a);
-    pic::init_pic();
+    Graphic::init();
+    Graphic::putfont_asc(210, 140, 10, "abcd");
+    Graphic::putfont_asc(210, 150, 10, "rio-os");
+
+    let mouse: MouseGraphic = MouseGraphic::new();
+    mouse.init_mouse_cursor(14);
+
+    PIC::init_pic();
+    let dsc_tbl: DscTbl = DscTbl::init_gdt_idt();
 
     loop {
         asmfunc::io_hlt();

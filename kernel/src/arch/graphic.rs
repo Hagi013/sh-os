@@ -5,26 +5,32 @@ use core::cell::Cell;
 
 use super::asmfunc;
 use super::boot_info::BootInfo;
-use super::hankaku::Hankaku;
+use super::hankaku;
 
+const ADR_BOOTINFO: u32 = 0x00000ff0;
+static mut scrnx: u16 = (ADR_BOOTINFO + 0x04) as u16;
+static mut scrny: u16 = (ADR_BOOTINFO + 0x06) as u16;
+static mut vram: u32 = (ADR_BOOTINFO + 0x08) as u32;
 
-pub struct Graphic {
-    boot_info: BootInfo,
-    hankaku: [u8; 4096],
-    mouse_buf: Cell<[u8; 256]>,
+fn get_scrnx() -> &'static u16 {
+    return unsafe { &*(scrnx as *const u16) }
 }
 
-impl Graphic {
-    pub fn new(bi: BootInfo) -> Self {
-        Graphic {
-            boot_info: bi,
-            hankaku: Hankaku::new().get_fonts(),
-            mouse_buf: Cell::new([0x0; 256]),   // そもそもここに置くこと自体が正しいかどうかは考えてない
-        }
-    }
+fn get_scrny() -> &'static u16 {
+    return unsafe { &*(scrny as *const u16) }
+}
 
+fn get_vram() -> &'static u32 {
+    return unsafe { &*(vram as *const u32) }
+}
+
+static fonts: [u8; 4096] = hankaku::fonts;
+
+pub struct Graphic {}
+impl Graphic {
     pub fn init() {
         Graphic::set_palette();
+        Graphic::init_screen();
     }
 
     fn set_palette() {
@@ -41,34 +47,88 @@ impl Graphic {
          asmfunc::io_store_eflags(eflags);
     }
 
-    pub fn init_screen(&self) {
-        let x: &u16 = &self.boot_info.scrnx;
-        let y: &u16 = &self.boot_info.scrny;
+    pub fn init_screen() {
+        let x: &u16 = get_scrnx();
+        let y: &u16 = get_scrny();
 
-        self.boxfill(RGB::DarkLightBlue.palette_no(), 0, 0,      x - 1, y - 29);
-        self.boxfill(RGB::Gray.palette_no(),          0, y - 28, x - 1, y - 28);
-        self.boxfill(RGB::White.palette_no(),         0, y - 27, x - 1, y - 27);
-        self.boxfill(RGB::Gray.palette_no(),          0, y - 26, x - 1, y -  1);
+        Graphic::boxfill(RGB::DarkLightBlue.palette_no(), 0, 0,      x - 1, y - 29);
+        Graphic::boxfill(RGB::Gray.palette_no(),          0, y - 28, x - 1, y - 28);
+        Graphic::boxfill(RGB::White.palette_no(),         0, y - 27, x - 1, y - 27);
+        Graphic::boxfill(RGB::Gray.palette_no(),          0, y - 26, x - 1, y -  1);
 
-        self.boxfill(RGB::White.palette_no(),         3, y - 24,    59, y - 24);
-        self.boxfill(RGB::White.palette_no(),         2, y - 24,     2, y -  4);
-        self.boxfill(RGB::DarkGray.palette_no(),      3, y -  4,    59, y -  4);
-        self.boxfill(RGB::DarkGray.palette_no(),     59, y - 23,    59, y -  5);
-        self.boxfill(RGB::Black.palette_no(),         2, y -  3,    59, y -  3);
-        self.boxfill(RGB::Black.palette_no(),        60, y - 24,    60, y -  3);
+        Graphic::boxfill(RGB::White.palette_no(),         3, y - 24,    59, y - 24);
+        Graphic::boxfill(RGB::White.palette_no(),         2, y - 24,     2, y -  4);
+        Graphic::boxfill(RGB::DarkGray.palette_no(),      3, y -  4,    59, y -  4);
+        Graphic::boxfill(RGB::DarkGray.palette_no(),     59, y - 23,    59, y -  5);
+        Graphic::boxfill(RGB::Black.palette_no(),         2, y -  3,    59, y -  3);
+        Graphic::boxfill(RGB::Black.palette_no(),        60, y - 24,    60, y -  3);
 
-        self.boxfill(RGB::DarkGray.palette_no(), x - 47, y - 24, x - 4, y - 24);
-        self.boxfill(RGB::DarkGray.palette_no(), x - 47, y - 23, x -47, y -  4);
-        self.boxfill(RGB::White.palette_no(),    x - 47, y -  3, x - 4, y -  3);
-        self.boxfill(RGB::White.palette_no(),    x -  3, y - 24, x - 3, y -  3);
+        Graphic::boxfill(RGB::DarkGray.palette_no(), x - 47, y - 24, x - 4, y - 24);
+        Graphic::boxfill(RGB::DarkGray.palette_no(), x - 47, y - 23, x -47, y -  4);
+        Graphic::boxfill(RGB::White.palette_no(),    x - 47, y -  3, x - 4, y -  3);
+        Graphic::boxfill(RGB::White.palette_no(),    x -  3, y - 24, x - 3, y -  3);
     }
 
-    fn boxfill(&self, color: u8, from_x: u16, from_y: u16, to_x: u16, to_y: u16) {
+    fn boxfill(color: u8, from_x: u16, from_y: u16, to_x: u16, to_y: u16) {
         for y in from_y..to_y {
             for x in from_x..to_x {
-                let address: *mut u8 = (self.boot_info.vram + ((y * self.boot_info.scrnx) + x) as u32) as *mut u8;
+                let address: *mut u8 = (get_vram() + ((y * get_scrnx()) + x) as u32) as *mut u8;
                 unsafe { *address = color; }
             }
+        }
+    }
+
+    pub fn putfont_asc(x: u16, y: u16, c: u8, s: &str) {
+        let mut idx: u16 = 0;
+        for byte in s.bytes().into_iter() {
+            Graphic::putfont_color(&(&x + (8 * &idx)), &y, &c, ((byte as u16) * 16) as usize);
+            idx += 1;
+        }
+    }
+
+//    pub fn putfont_asc(&self, x: u16, y: u16, c: u8) {
+//        // let mut idx: isize = 0x5a;
+//        let mut idx: isize = 97;
+//        self.putfont(&x, &y, &c, (&idx * 16) as usize);
+//    }
+
+    fn putfont_color(x: &u16, y: &u16, c: &u8, idx: usize) {
+        for i in 0..16 {
+            let mut address = (get_vram() + ((y + i) * get_scrnx() + x) as u32) as *mut u8;
+            let d: u8 = fonts[idx + i as usize];
+            unsafe {
+                if (d & 0x80) != 0 { *(address.offset(0)) = *c }
+                if (d & 0x40) != 0 { *(address.offset(1)) = *c }
+                if (d & 0x20) != 0 { *(address.offset(2)) = *c }
+                if (d & 0x10) != 0 { *(address.offset(3)) = *c }
+                if (d & 0x08) != 0 { *(address.offset(4)) = *c }
+                if (d & 0x04) != 0 { *(address.offset(5)) = *c }
+                if (d & 0x02) != 0 { *(address.offset(6)) = *c }
+                if (d & 0x01) != 0 { *(address.offset(7)) = *c }
+            }
+        }
+    }
+
+    fn putblock(pxsize: u16, pysize: u16, px0: u16, py0: u16, block_buf: *const u8, bxsize: u16) {
+        for y in 0..pysize {
+            for x in 0..pxsize {
+                let mut address = (get_vram() + ((py0 + y) * get_scrnx() + (px0 + x)) as u32) as *mut u8;
+                unsafe {
+                    *address = *block_buf.offset((y * bxsize + x) as isize)
+                }
+            }
+        }
+    }
+}
+
+pub struct MouseGraphic {
+    mouse_buf: Cell<[u8; 256]>
+}
+
+impl MouseGraphic {
+    pub fn new() -> Self {
+        MouseGraphic {
+            mouse_buf: Cell::new([0x0; 256])
         }
     }
 
@@ -109,54 +169,12 @@ impl Graphic {
         self.mouse_buf.set(mouse_buf);
 
         // ToDo ここは後で移動する
-        let mx = (self.boot_info.scrnx - 16) / 2;   /* 画面中央になるように座標計算 */
-        let my = (self.boot_info.scrny - 28 - 16) / 2;
-        self.putblock(16, 16, mx, my, &mouse_buf as *const u8, 16);
-    }
-
-    pub fn putfont_asc(&self, x: u16, y: u16, c: u8, s: &str) {
-        let mut idx: u16 = 0;
-        for byte in s.bytes().into_iter() {
-            self.putfont_color(&(&x + (8 * &idx)), &y, &c, ((byte as u16) * 16) as usize);
-            idx += 1;
-        }
-    }
-
-//    pub fn putfont_asc(&self, x: u16, y: u16, c: u8) {
-//        // let mut idx: isize = 0x5a;
-//        let mut idx: isize = 97;
-//        self.putfont(&x, &y, &c, (&idx * 16) as usize);
-//    }
-
-    // #[inline(always)]
-    fn putfont_color(&self, x: &u16, y: &u16, c: &u8, idx: usize) {
-        for i in 0..16 {
-            let mut address = (self.boot_info.vram + ((y + i) * self.boot_info.scrnx + x) as u32) as *mut u8;
-            let d: u8 = self.hankaku[idx + i as usize];
-            unsafe {
-                if (d & 0x80) != 0 { *(address.offset(0)) = *c }
-                if (d & 0x40) != 0 { *(address.offset(1)) = *c }
-                if (d & 0x20) != 0 { *(address.offset(2)) = *c }
-                if (d & 0x10) != 0 { *(address.offset(3)) = *c }
-                if (d & 0x08) != 0 { *(address.offset(4)) = *c }
-                if (d & 0x04) != 0 { *(address.offset(5)) = *c }
-                if (d & 0x02) != 0 { *(address.offset(6)) = *c }
-                if (d & 0x01) != 0 { *(address.offset(7)) = *c }
-            }
-        }
-    }
-
-    fn putblock(&self, pxsize: u16, pysize: u16, px0: u16, py0: u16, block_buf: *const u8, bxsize: u16) {
-        for y in 0..pysize {
-            for x in 0..pxsize {
-                let mut address = (self.boot_info.vram + ((py0 + y) * self.boot_info.scrnx + (px0 + x)) as u32) as *mut u8;
-                unsafe {
-                    *address = *block_buf.offset((y * bxsize + x) as isize)
-                }
-            }
-        }
+        let mx = (get_scrnx() - 16) / 2;   /* 画面中央になるように座標計算 */
+        let my = (get_scrny() - 28 - 16) / 2;
+        Graphic::putblock(16, 16, mx, my, &mouse_buf as *const u8, 16);
     }
 }
+
 
 enum RGB {
     Black,          /*  0:黒 */
