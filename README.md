@@ -106,8 +106,16 @@ DEBUG := -S -gdb tcp::9000
 ```sh
 > gdb
 (gdb) target remote localhost:9000
+# break pointを貼りたい場合
+(gdb) b *0x7c00
 (gdb) continueなど
-```
 
+# break pointの削除
+## 設定した全てのブレークポイントを削除する。
+delete 
+## 番号breakp(info break で表示される番号)のブレークポイントを削除する。 番号はスペースで区切って、複数を指定することが可能。
+delete breakp
+
+```
 
 

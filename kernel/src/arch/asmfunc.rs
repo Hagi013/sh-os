@@ -41,7 +41,8 @@ pub fn io_in8(port: i32) -> i32 {
     return res;
 }
 
-pub fn io_out8(port: i32, data: i32) {
+//pub fn io_out8(port: i32, data: i32) {
+pub fn io_out8(port: i32, data: u8) {
     unsafe {
         asm!("
         out dx, al
@@ -82,27 +83,33 @@ pub fn io_store_eflags(eflags: u32) {
 }
 
 pub fn load_gdtr(limit: u32, addr: u32) {
-    let load_address: u32 = limit + addr;
     unsafe {
         asm!("
-        lgdt [eax]
+        mov eax, $0
+        mov [esp+6], ax
+        mov eax, $1
+        mov [esp+8], eax
+        lgdt [esp+6]
         "
         :
-        : "{eax}"(load_address)
-        :
+        : "r"(limit),"r"(addr)
+        : "memory"
         : "intel");
     }
 }
 
 pub fn load_idtr(limit: u32, addr: u32) {
-    let load_address: u32 = limit + addr;
     unsafe {
         asm!("
-        lidt [eax]
+        mov eax, $0
+        mov [esp+6], ax
+        mov eax, $1
+        mov [esp+8], eax
+        lidt [esp+6]
         "
         :
-        : "{eax}"(load_address)
-        :
+        : "r"(limit),"r"(addr)
+        : "memory"
         : "intel");
     }
 }
@@ -185,29 +192,4 @@ pub fn farjmp(eip: u32, _cs: u32) {
 //            :
 //            : "intel")
 //    }
-//}
-
-////pub fn asm_inthandler21() {
-////    unsafe {
-////        asm!("
-////            push es
-////            push ds
-////            pushad
-////            mov eax, esp
-////            push eax
-////            mov ax, ss
-////            mov ds, ax
-////            mov es, ax
-////            call %0
-////            pop eax
-////            popad
-////            pop ds
-////            pop es
-////            iret
-////            "
-////            :
-////            : "r"(handler)
-////            :
-////            : "intel")
-////    }
 //}

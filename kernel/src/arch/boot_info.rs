@@ -2,9 +2,9 @@ pub const ADR_BOOTINFO: u32 = 0x00000ff0;
 
 // public interface
 pub struct BootInfo {
-    cyls: u32,      /* ブートセクタはどこまでディスクを読み込んだのか */
-    leds: u32,      /* ブートの時のキーボードのLEDの状態 */
-    vmode: u32,     /* ビデオモード 何ビットカラーか */
+    pub cyls: u32,      /* ブートセクタはどこまでディスクを読み込んだのか */
+    pub leds: u32,      /* ブートの時のキーボードのLEDの状態 */
+    pub vmode: u32,     /* ビデオモード 何ビットカラーか */
     pub scrnx: u16,     /* 画像解像度 */
     pub scrny: u16,     /* 画像解像度 */
     pub vram: u32,      /* vram */

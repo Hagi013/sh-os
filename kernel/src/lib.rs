@@ -18,21 +18,26 @@ use self::arch::graphic::Graphic;
 use self::arch::graphic::MouseGraphic;
 use self::arch::asmfunc;
 use self::arch::dsctbl::DscTbl;
-use self::arch::pic::PIC;
+use self::arch::pic;
 
 #[start]
 #[no_mangle]
 pub extern fn init_os() {
 
     Graphic::init();
+    Graphic::putfont_asc(210, 120, 10, "12345");
     Graphic::putfont_asc(210, 140, 10, "abcd");
     Graphic::putfont_asc(210, 150, 10, "rio-os");
+
+    pic::init_pic();
+    let dsc_tbl: DscTbl = DscTbl::init_gdt_idt();
+    asmfunc::io_sti();
 
     let mouse: MouseGraphic = MouseGraphic::new();
     mouse.init_mouse_cursor(14);
 
-    PIC::init_pic();
-    let dsc_tbl: DscTbl = DscTbl::init_gdt_idt();
+    pic::allow_pic1_keyboard_int();
+    pic::allow_mouse_int();
 
     loop {
         asmfunc::io_hlt();

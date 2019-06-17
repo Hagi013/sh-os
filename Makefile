@@ -4,8 +4,8 @@ TARGET_ARCH_i686 := i686-unknown-linux-gnu
 BUILD_NAME := shos-$(TARGET_ARCH_i686)
 QEMU_ARCH_i686 := i386
 
-# BUILD_MODE=debug
-BUILD_MODE=release
+BUILD_MODE=debug
+#BUILD_MODE=release
 
 DEBUG := -S -gdb tcp::9000
 
@@ -33,7 +33,8 @@ $(BUILD_DIR)/secondboot.bin: kernel/boot
 #kernel
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/libshos.a: ./kernel/$(TARGET_ARCH_i686).json ./kernel/Cargo.toml ./kernel/src/*.rs
 	# cd ${KERNEL_DIR}; RUSTFLAGS="-Z pre-link-arg=-fno-PIC" rustup run nightly `which cargo` build --target $(TARGET_ARCH_i686) --release -v
-	cd ${KERNEL_DIR}; RUST_TARGET_PATH=$(PWD); rustup run nightly `which cargo` xbuild --target $(TARGET_ARCH_i686).json --release -v
+	# cd ${KERNEL_DIR}; RUST_TARGET_PATH=$(PWD); RUST_BACKTRACE=1; rustup run nightly `which cargo` xbuild --target $(TARGET_ARCH_i686).json --release -v
+	cd ${KERNEL_DIR}; RUST_TARGET_PATH=$(PWD); set RUST_BACKTRACE=1; rustup run nightly `which cargo` xbuild --target $(TARGET_ARCH_i686).json -v
 
 ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/%.o: ./kernel/boot/asmfunc.asm
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
