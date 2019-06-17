@@ -44,65 +44,9 @@ pub fn allow_mouse_int() {
 }
 
 #[no_mangle]
-pub fn asm_inthandler21() {
-    Graphic::putfont_asc(100, 60, 10, "ekkkkkkkkeeeeeeeeee");
-    let handler: extern "C" fn(*const u32) = inthandler21;
-    unsafe {
-        asm!("
-            push es
-            push ds
-            pushad
-            mov eax, esp
-            push eax
-            mov ax, ss
-            mov ds, ax
-            mov es, ax
-            call $0
-            pop eax
-            popad
-            pop ds
-            pop es
-            iretd
-            "
-            :
-            : "i"(handler)
-            : "memory"
-            : "intel")
-    }
-}
-
-#[no_mangle]
 extern "C" fn inthandler21(exp: *const u32) {
-    // Graphic::putfont_asc(200, 100, 10, "INT 21 (IRQ-1) : PS/2 keyboard");
+    Graphic::putfont_asc(10, 5, 10, "INT 21 (IRQ-1) : PS/2 keyboard");
     asmfunc::io_out8(PIC0_OCW2, 0x61);
-}
-
-#[no_mangle]
-pub fn asm_inthandler27() {
-    // Graphic::putfont_asc(100, 60, 10, "asm_inthandler27");
-    let handler: extern "C" fn(*const u32) = inthandler27;
-    unsafe {
-        asm!("
-            push es
-            push ds
-            pushad
-            mov eax, esp
-            push eax
-            mov ax, ss
-            mov ds, ax
-            mov es, ax
-            call $0
-            pop eax
-            popad
-            pop ds
-            pop es
-            iretd
-            "
-            :
-            : "i"(handler)
-            : "memory"
-            : "intel")
-    }
 }
 
 #[no_mangle]

@@ -2,6 +2,12 @@ use super::asmfunc;
 use super::pic;
 use super::graphic::Graphic;
 
+extern "C" {
+    pub fn asm_inthandler21();
+    pub fn asm_inthandler27();
+}
+
+
 const ADR_GDT: u32 = 0x00270000;
 const LIMIT_GDT: usize = 0x0000ffff;
 const ADR_OSPAK: u32 = 0x00280000;
@@ -94,8 +100,8 @@ impl DscTbl {
 
         asmfunc::load_idtr(LIMIT_IDT as u32, ADR_IDT);
 
-        gate_descriptor_table[0x21] = DscTbl::set_fn_gatedesc(0x21 as u32, pic::asm_inthandler21, 2 * 8, AR_INTGATE32);
-        gate_descriptor_table[0x27] = DscTbl::set_fn_gatedesc(0x27 as u32, pic::asm_inthandler27, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x21] = DscTbl::set_fn_gatedesc(0x21 as u32, asm_inthandler21, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x27] = DscTbl::set_fn_gatedesc(0x27 as u32, asm_inthandler27, 2 * 8, AR_INTGATE32);
         return gate_descriptor_table
     }
 
@@ -112,7 +118,8 @@ impl DscTbl {
         return gate_dsc_entry;
     }
 
-    fn set_fn_gatedesc(idx: u32, func: fn(), selector: u16, ar: u32) -> *mut GateDescriptorEntry {
+//    fn set_fn_gatedesc(idx: u32, func: fn(), selector: u16, ar: u32) -> *mut GateDescriptorEntry {
+    fn set_fn_gatedesc(idx: u32, func: unsafe extern fn(), selector: u16, ar: u32) -> *mut GateDescriptorEntry {
         let offset: u32 = func as u32;
         return DscTbl::set_gatedesc(idx, offset, selector, ar);
     }
