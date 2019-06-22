@@ -52,9 +52,6 @@ impl DscTbl {
     }
 
     pub fn init_gdt_idt() -> Self {
-//        DscTbl::init_gdt();
-//        DscTbl::init_idt();
-        // Graphic::putfont_asc(210, 80, 10, "setup done.");
         return DscTbl::new();
     }
 
@@ -118,7 +115,6 @@ impl DscTbl {
         return gate_dsc_entry;
     }
 
-//    fn set_fn_gatedesc(idx: u32, func: fn(), selector: u16, ar: u32) -> *mut GateDescriptorEntry {
     fn set_fn_gatedesc(idx: u32, func: unsafe extern fn(), selector: u16, ar: u32) -> *mut GateDescriptorEntry {
         let offset: u32 = func as u32;
         return DscTbl::set_gatedesc(idx, offset, selector, ar);
