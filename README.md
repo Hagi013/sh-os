@@ -59,6 +59,7 @@ info ld scripts
 ```
 
 ## qemu
+[コマンド参照](https://qemu.weilnetz.de/doc/qemu-doc.html#pcsys_005fkeys)
 ### block deviceの確認
 ```
 info block
@@ -73,6 +74,32 @@ info registers
 ```
 info mem
 ```
+
+### Show infos for each CPU.
+```
+info cpus
+```
+
+### Show the interrupts statistics (if available).
+```
+info irq
+```
+
+### Show PIC state.
+```
+info pic
+```
+
+### Show virtual to physical memory mappings.
+```
+info tlb
+```
+
+### Show memory tree
+```
+info mtree
+```
+
 
 ### メモリの中身の確認
 ```
