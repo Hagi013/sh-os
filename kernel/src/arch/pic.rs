@@ -45,7 +45,7 @@ pub fn allow_mouse_int() {
 
 #[no_mangle]
 extern "C" fn inthandler21(exp: *const u32) {
-    Graphic::putfont_asc(10, 5, 10, "INT 21 (IRQ-1) : PS/2 keyboard");
+    Graphic::putfont_asc(10, 0, 10, "INT 21 (IRQ-1) : PS/2 keyboard");
     asmfunc::io_out8(PIC0_OCW2, 0x61);
 }
 

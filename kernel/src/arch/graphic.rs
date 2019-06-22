@@ -40,9 +40,6 @@ impl Graphic {
         asmfunc::io_out8(0x03c8, 0);
 
         for rgb in RGB::iterator() {
-//            asmfunc::io_out8(0x03c9, (rgb.r() >> 2) as i32);
-//            asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as i32);
-//            asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as i32);
             asmfunc::io_out8(0x03c9, (rgb.r() >> 2) as u8);
             asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as u8);
             asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as u8);
