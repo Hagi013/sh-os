@@ -70,18 +70,18 @@ impl Graphic {
     }
 
     fn boxfill(color: u8, from_x: u16, from_y: u16, to_x: u16, to_y: u16) {
-        for y in from_y..to_y {
-            for x in from_x..to_x {
-                let address: *mut u8 = (get_vram() + ((y * get_scrnx()) + x) as u32) as *mut u8;
+        for y in (from_y as u32)..(to_y as u32) {
+            for x in (from_x as u32)..(to_x as u32) {
+                 let address: *mut u8 = (get_vram() + (y * *get_scrnx() as u32) + x) as *mut u8;
                 unsafe { *address = color; }
             }
         }
     }
 
-    pub fn putfont_asc(x: u16, y: u16, c: u8, s: &str) {
-        let mut idx: u16 = 0;
+    pub fn putfont_asc(x: u32, y: u32, c: u8, s: &str) {
+        let mut idx: u32 = 0;
         for byte in s.bytes().into_iter() {
-            Graphic::putfont_color(&(&x + (8 * &idx)), &y, &c, ((byte as u16) * 16) as usize);
+            Graphic::putfont_color((x + (8 * idx)), y, &c, ((byte as u16) * 16) as usize);
             idx += 1;
         }
     }
@@ -92,9 +92,9 @@ impl Graphic {
 //        self.putfont(&x, &y, &c, (&idx * 16) as usize);
 //    }
 
-    fn putfont_color(x: &u16, y: &u16, c: &u8, idx: usize) {
+    fn putfont_color(x: u32, y: u32, c: &u8, idx: usize) {
         for i in 0..16 {
-            let mut address = (get_vram() + ((y + i) * get_scrnx() + x) as u32) as *mut u8;
+            let mut address = (get_vram() + ((y + i) * *get_scrnx() as u32 + x)) as *mut u8;
             let d: u8 = fonts[idx + i as usize];
             unsafe {
                 if (d & 0x80) != 0 { *(address.offset(0)) = *c }
@@ -109,10 +109,10 @@ impl Graphic {
         }
     }
 
-    fn putblock(pxsize: u16, pysize: u16, px0: u16, py0: u16, block_buf: *const u8, bxsize: u16) {
+    fn putblock(pxsize: u32, pysize: u32, px0: u32, py0: u32, block_buf: *const u8, bxsize: u32) {
         for y in 0..pysize {
             for x in 0..pxsize {
-                let mut address = (get_vram() + ((py0 + y) * get_scrnx() + (px0 + x)) as u32) as *mut u8;
+                let mut address = (get_vram() + ((py0 + y) * *get_scrnx() as u32 + (px0 + x)) as u32) as *mut u8;
                 unsafe {
                     *address = *block_buf.offset((y * bxsize + x) as isize)
                 }
@@ -169,8 +169,10 @@ impl MouseGraphic {
         self.mouse_buf.set(mouse_buf);
 
         // ToDo ここは後で移動する
-        let mx = (get_scrnx() - 16) / 2;   /* 画面中央になるように座標計算 */
-        let my = (get_scrny() - 28 - 16) / 2;
+//        let mx = (get_scrnx() - 16) / 2;   /* 画面中央になるように座標計算 */
+//        let my = (get_scrny() - 28 - 16) / 2;
+        let mx: u32 = (*get_scrnx() as u32 - 16) / 2;   /* 画面中央になるように座標計算 */
+        let my: u32 = (*get_scrny() as u32 - 28 - 16) / 2;
         Graphic::putblock(16, 16, mx, my, &mouse_buf as *const u8, 16);
     }
 }
