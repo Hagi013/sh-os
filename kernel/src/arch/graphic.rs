@@ -24,7 +24,9 @@ fn get_vram() -> &'static u32 {
     return unsafe { &*(vram as *const u32) }
 }
 
-static fonts: [u8; 4096] = hankaku::fonts;
+static FONTS: [u8; 4096] = hankaku::FONTS;
+static HANKAKU_TABLE: [&str; 0x80] = hankaku::HANKAKU_TABLE;
+static HANKAKU_SHIFT_TABLE: [&str; 0x80] = hankaku::HANKAKU_SHIFT_TABLE;
 
 pub struct Graphic {}
 impl Graphic {
@@ -78,6 +80,11 @@ impl Graphic {
         }
     }
 
+    pub fn putfont_asc_from_keyboard(x: u32, y: u32, c: u8, data: i32) {
+        let font: &str = HANKAKU_TABLE[data as usize];
+        Graphic::putfont_asc(x, y, c, font);
+    }
+
     pub fn putfont_asc(x: u32, y: u32, c: u8, s: &str) {
         let mut idx: u32 = 0;
         for byte in s.bytes().into_iter() {
@@ -95,7 +102,7 @@ impl Graphic {
     fn putfont_color(x: u32, y: u32, c: &u8, idx: usize) {
         for i in 0..16 {
             let mut address = (get_vram() + ((y + i) * *get_scrnx() as u32 + x)) as *mut u8;
-            let d: u8 = fonts[idx + i as usize];
+            let d: u8 = FONTS[idx + i as usize];
             unsafe {
                 if (d & 0x80) != 0 { *(address.offset(0)) = *c }
                 if (d & 0x40) != 0 { *(address.offset(1)) = *c }
