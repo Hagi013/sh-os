@@ -1,12 +1,20 @@
 #![no_std]
 #![no_main]
 #![feature(lang_items, start, asm, const_raw_ptr_deref)]
-//#![feature(alloc)]
+// #![feature(alloc)]
+#![cfg_attr(feature = "alloc", feature(alloc))]
 
-//#[macro_use]
-//extern crate alloc;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+#[macro_use]
+extern crate alloc;
+
 
 use core::panic::PanicInfo;
+use core::str;
+use core::fmt::Write;
+// use alloc::string::String;
+//use alloc::borrow::ToOwned;
+//use alloc::string::ToString;
 
 #[allow(unused_imports)]
 #[cfg(all(not(test), target_arch = "x86"))]
@@ -38,6 +46,12 @@ pub extern fn init_os() {
 
     pic::allow_pic1_keyboard_int();
     pic::allow_mouse_int();
+
+    let num: i32 = 123;
+    // Graphic::putfont_asc(10, 80, 10, &str::from_utf8_mut(&mut num.to_be_bytes()).unwrap());
+//    let mut output = "".to_string();
+//    write!(output, "{}", num);
+//    Graphic::putfont_asc(10, 80, 10, &output);
 
     loop {
         asmfunc::io_hlt();
