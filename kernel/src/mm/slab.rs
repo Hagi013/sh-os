@@ -1,4 +1,5 @@
-use alloc::alloc::{ AllocErr, Layout };
+use core::alloc::{ AllocErr, Layout };
+use core::ptr::NonNull;
 
 pub struct Slab {
     block_size: usize,
@@ -10,7 +11,7 @@ impl Slab {
         let num_of_blocks: usize = slab_size / block_size;
         Slab {
             block_size,
-            free_block_list: FreeBlockList::new(start_addr, block_size, num_of_blocks),
+            free_block_list: unsafe { FreeBlockList::new(start_addr, block_size, num_of_blocks) },
         }
     }
 
@@ -20,21 +21,21 @@ impl Slab {
 
     pub unsafe fn grow(&mut self, start_addr: usize, slab_size: usize) {
         let num_of_blocks: usize = slab_size / self.block_size;
-        let mut block_list = FreeBlockList::new(start_addr, slab_size, num_of_blocks);
+        let mut block_list: FreeBlockList = unsafe { FreeBlockList::new(start_addr, slab_size, num_of_blocks) };
         while let Some(block) = block_list.pop() {
             self.free_block_list.push(block);
         }
     }
 
-    pub fn allocate(&mut self, layout: Layout) -> Result<*mut u8, AllocErr> {
-        match self.free_block_list.pop {
-            Some(block) => Ok(block.addr() as *mut u8),
-            None => Err(AllocErr::Exhausted { request: layout }),
+    pub fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+        match self.free_block_list.pop() {
+            Some(block) => Ok(unsafe { NonNull::new_unchecked(block.addr() as *mut u8 ) }),
+            None => Err(AllocErr),
         }
     }
 
-    pub fn deallocate(&mut self, ptr: *mut u8) {
-        let ptr: *mut FreeBlock = ptr as *mut FreeBlock;
+    pub fn deallocate(&mut self, ptr: NonNull<u8>) {
+        let ptr: *mut FreeBlock = ptr.as_ptr() as *mut FreeBlock;
         unsafe { self.free_block_list.push(&mut *ptr); }
     }
 }
