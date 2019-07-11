@@ -1,3 +1,5 @@
+#![feature(const_fn)]
+
 use core::ops::Deref;
 use core::ptr::NonNull;
 use core::alloc::{Alloc, AllocErr, Layout, GlobalAlloc};
@@ -150,11 +152,11 @@ unsafe impl Alloc for Heap {
 pub struct LockedHeap(Mutex<Option<Heap>>);
 
 impl LockedHeap {
-    pub const fn empty() -> Self {
-        LockedHeap(Mutex(None))
+    pub fn empty() -> Self {
+        LockedHeap(Mutex::new(None))
     }
 
-    pub unsafe fn init(&mut self, heap_addr_start: usize, size: usize) {
+    pub unsafe fn init(&self, heap_addr_start: usize, size: usize) {
         *self.0.lock() = Some(Heap::new(heap_addr_start, size));
     }
 
@@ -172,7 +174,7 @@ impl Deref for LockedHeap {
 
 unsafe impl<'a> Alloc for &'a LockedHeap {
     unsafe fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
-        if let Some(ref mut heap) = (*self).0 {
+        if let Some(ref mut heap) = *self.0.lock() {
             heap.allocate(layout)
         } else {
             panic!("allocate: heap not initialized");
@@ -180,7 +182,7 @@ unsafe impl<'a> Alloc for &'a LockedHeap {
     }
 
     unsafe fn dealloc(&mut self, ptr: NonNull<u8>, layout: Layout) {
-        if let Some(ref mut heap) = (*self).0 {
+        if let Some(ref mut heap) = *self.0.lock() {
             heap.deallocate(ptr, layout)
         } else {
             panic!("deallocate: heap not initialized");
@@ -188,7 +190,7 @@ unsafe impl<'a> Alloc for &'a LockedHeap {
     }
 
     fn usable_size(&self, layout: &Layout) -> (usize, usize) {
-        if let Some(ref mut heap) = (*self).0 {
+        if let Some(ref mut heap) = *self.0.lock() {
             heap.usable_size(layout)
         } else {
             panic!("usable_size: heap not initialized");
@@ -198,7 +200,7 @@ unsafe impl<'a> Alloc for &'a LockedHeap {
 
 unsafe impl GlobalAlloc for LockedHeap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        if let Some(ref mut heap) = self.0 {
+        if let Some(ref mut heap) = *self.0.lock() {
             if let Ok(ref mut nnptr) = heap.allocate(layout) {
                 return nnptr.as_ptr();
             } else {
@@ -210,7 +212,7 @@ unsafe impl GlobalAlloc for LockedHeap {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        if let Some(ref mut heap) = (*self).0 {
+        if let Some(ref mut heap) = *self.0.lock() {
             if let Some(p) = NonNull::new(ptr) {
                 heap.deallocate(p, layout)
             }
