@@ -1,3 +1,5 @@
+#![feature(const_fn)]
+
 use core::sync::atomic::{ AtomicBool, Ordering, ATOMIC_BOOL_INIT, spin_loop_hint as cpu_relax };
 use core::cell::UnsafeCell;
 use core::marker::Sync;
@@ -94,6 +96,10 @@ impl<T: ?Sized + Default> Default for Mutex<T> {
 impl<'a, T: ?Sized> Deref for MutexGuard<'a, T> {
     type Target = T;
     fn deref<'b>(&'b self) -> &'b T { &*self.data }
+}
+
+impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
+    fn deref_mut<'b>(&'b mut self) -> &'b mut T { &mut *self.data }
 }
 
 impl<'a, T: ?Sized> Drop for MutexGuard<'a, T> {

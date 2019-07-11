@@ -147,25 +147,25 @@ unsafe impl Alloc for Heap {
     }
 }
 
-pub struct LockedHeap(Option<Heap>);
+pub struct LockedHeap(Mutex<Option<Heap>>);
 
 impl LockedHeap {
     pub const fn empty() -> Self {
-        LockedHeap(None)
+        LockedHeap(Mutex(None))
     }
 
     pub unsafe fn init(&mut self, heap_addr_start: usize, size: usize) {
-        self.0 = Some(Heap::new(heap_addr_start, size));
+        *self.0.lock() = Some(Heap::new(heap_addr_start, size));
     }
 
     pub unsafe fn new(heap_addr_start: usize, heap_size: usize) -> Self {
-        LockedHeap(Some(Heap::new(heap_addr_start, heap_size)))
+        LockedHeap(Mutex::new(Some(Heap::new(heap_addr_start, heap_size))))
     }
 }
 
 impl Deref for LockedHeap {
-    type Target = Option<Heap>;
-    fn deref(&self) -> &Option<Heap> {
+    type Target = Mutex<Option<Heap>>;
+    fn deref(&self) -> &Mutex<Option<Heap>> {
         &self.0
     }
 }
