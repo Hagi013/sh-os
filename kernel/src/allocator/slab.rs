@@ -1,6 +1,10 @@
 use core::alloc::{ AllocErr, Layout };
 use core::ptr::NonNull;
 
+//use super::Graphic;
+//use super::super::Printer;
+//use core::fmt::Write;
+
 pub struct Slab {
     block_size: usize,
     free_block_list: FreeBlockList,
@@ -48,7 +52,7 @@ struct FreeBlockList {
 impl FreeBlockList {
     unsafe fn new(start_addr: usize, block_size: usize, num_of_blocks: usize) -> Self {
         let mut new_list = FreeBlockList::new_empty();
-        for i in (0..num_of_blocks) {
+        for i in 0..num_of_blocks {
             let new_block = (start_addr + i * block_size) as *mut FreeBlock;
             new_list.push(&mut *new_block);
         }
