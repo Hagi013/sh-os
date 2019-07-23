@@ -10,8 +10,9 @@ crate-type = ["staticlib"]
 
 [profile.dev]
 panic = "abort"
-opt-level = 3
+opt-level = 'z'
 debug = true
+lto = true
 
 [profile.release]
 panic = "abort"
@@ -20,7 +21,5 @@ lto = true
 
 [dependencies]
 
-[dependencies.compiler_builtins]
-features = ["mem"]
-stage = 1
-
+[package.metadata.cargo-xbuild]
+memcpy = true

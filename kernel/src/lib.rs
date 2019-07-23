@@ -1,32 +1,61 @@
 #![no_std]
 #![no_main]
 #![feature(lang_items, start, asm, const_raw_ptr_deref)]
-// #![feature(alloc)]
-#![cfg_attr(feature = "alloc", feature(alloc))]
-
-#[cfg(all(feature = "alloc", not(feature = "std")))]
-#[macro_use]
-extern crate alloc;
-
+#![feature(const_fn)]
+#![feature(allocator_api)]
+#![feature(alloc_error_handler)]
+#![feature(alloc)]
 
 use core::panic::PanicInfo;
 use core::str;
-use core::fmt::Write;
-// use alloc::string::String;
+use core::fmt;
+use core::alloc::Layout;
+#[macro_use]
+use core::fmt::{ Write, Display };
+
+
+#[macro_use]
+extern crate alloc;
+
+use alloc::string::String;
 //use alloc::borrow::ToOwned;
-//use alloc::string::ToString;
+use alloc::string::ToString;
 
 #[allow(unused_imports)]
 #[cfg(all(not(test), target_arch = "x86"))]
 #[macro_use]
 pub mod arch;
-
 use self::arch::boot_info::BootInfo;
 use self::arch::graphic::Graphic;
 use self::arch::graphic::MouseGraphic;
+use self::arch::graphic::Printer;
 use self::arch::asmfunc;
 use self::arch::dsctbl::DscTbl;
 use self::arch::pic;
+
+#[allow(unused_imports)]
+pub mod allocator;
+use self::allocator::LockedHeap;
+
+#[global_allocator]
+static ALLOCATOR: LockedHeap = LockedHeap;
+
+#[allow(unused_imports)]
+pub mod spin;
+use spin::mutex::Mutex;
+use spin::mutex::MutexGuard;
+
+fn init_heap() {
+//    let heap_start: usize = 0x00400000;
+//    let heap_end: usize = 0xbfffffff;
+    let heap_start: usize = 0x00800000;
+    let heap_end: usize = 0x00f00000;
+
+    let heap_size: usize = heap_end - heap_start;
+    let mut printer = Printer::new(0, 80, 10);
+    write!(printer, "{:x}", heap_size).unwrap();
+    ALLOCATOR.init(heap_start, heap_size);
+}
 
 #[start]
 #[no_mangle]
@@ -47,13 +76,12 @@ pub extern fn init_os() {
     pic::allow_pic1_keyboard_int();
     pic::allow_mouse_int();
 
-    let num: i32 = 123;
-    // Graphic::putfont_asc(10, 80, 10, &str::from_utf8_mut(&mut num.to_be_bytes()).unwrap());
-//    let mut output = "".to_string();
-//    write!(output, "{}", num);
-//    Graphic::putfont_asc(10, 80, 10, &output);
+    init_heap();
 
-    loop {
+    let a: String = "String Alloc!!".to_string();
+    Graphic::putfont_asc(210, 180, 10, &a);
+
+   loop {
         asmfunc::io_hlt();
     }
 }
@@ -65,9 +93,23 @@ pub extern "C" fn eh_personality() {}
 #[panic_handler]
 #[no_mangle]
 pub extern "C" fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    Graphic::putfont_asc(0, 100, 10, "panic!!!!!");
+    let mut printer = Printer::new(0, 120, 10);
+    write!(printer, "{:?}", _info.location().unwrap().file()).unwrap();
+    let mut printer = Printer::new(0, 140, 10);
+    write!(printer, "{:?}", _info.location().unwrap().line()).unwrap();
+    let mut printer = Printer::new(0, 160, 10);
+    write!(printer, "{:?}", _info.location().unwrap().column()).unwrap();
+    loop {
+        asmfunc::io_hlt();
+    }
 }
 
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn _Unwind_Resume(_ex_obj: *mut ()) { }
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: Layout) -> ! {
+    panic!("allocation error: {:?}", layout)
+}
