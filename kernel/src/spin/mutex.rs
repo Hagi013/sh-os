@@ -8,6 +8,10 @@ use core::fmt;
 use core::option::Option::{ self, None, Some };
 use core::default::Default;
 
+use super::super::Graphic;
+use super::super::Printer;
+use core::fmt::Write;
+
 pub struct Mutex<T: ?Sized> {
     lock: AtomicBool,
     data: UnsafeCell<T>,
@@ -23,7 +27,8 @@ unsafe impl<T: ?Sized + Send> Sync for Mutex<T> {}
 unsafe impl<T: ?Sized + Send> Send for Mutex<T> {}
 
 impl<T> Mutex<T> {
-    #[cfg(feature = "const_fn")]
+
+//    #[cfg(feature = "const_fn")]
     pub const fn new(user_data: T) -> Mutex<T> {
         Mutex {
             lock: ATOMIC_BOOL_INIT,
@@ -31,13 +36,13 @@ impl<T> Mutex<T> {
         }
     }
 
-    #[cfg(not(feature = "const_fn"))]
-    pub fn new(user_data: T) -> Mutex<T> {
-        Mutex{
-            lock: ATOMIC_BOOL_INIT,
-            data: UnsafeCell::new(user_data),
-        }
-    }
+//    #[cfg(not(feature = "const_fn"))]
+//    pub fn new(user_data: T) -> Mutex<T> {
+//        Mutex{
+//            lock: ATOMIC_BOOL_INIT,
+//            data: UnsafeCell::new(user_data),
+//        }
+//    }
 
     pub fn into_inner(self) -> T {
         let Mutex { data, ..} = self;
@@ -47,8 +52,13 @@ impl<T> Mutex<T> {
 
 impl<T: ?Sized> Mutex<T> {
     fn obtain_lock(&self) {
-        while self.lock.compare_and_swap(false, true, Ordering::Acquire) != false {
-            while self.lock.load(Ordering::Relaxed) { cpu_relax(); }
+        // let mut printer = Printer::new(100, 440, 10);
+        // write!(printer, "{:?}", self.lock.compare_and_swap(false, true, Ordering::Acquire)).unwrap();
+        self.lock.compare_and_swap(false, true, Ordering::Acquire);
+        while self.lock.compare_and_swap(false, true, Ordering::Acquire) == false {
+            while self.lock.load(Ordering::Relaxed) {
+                cpu_relax();
+            }
         }
     }
 
