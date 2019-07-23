@@ -1,11 +1,15 @@
 use core::slice::Iter;
 use core::cell::Cell;
+use core::fmt;
+// use core::fmt::{ Write, Result };
 
 //use alloc::vec::Vec;
 
 use super::asmfunc;
 use super::boot_info::BootInfo;
 use super::hankaku;
+#[macro_use]
+use core::fmt::{ Write, Display };
 
 const ADR_BOOTINFO: u32 = 0x00000ff0;
 static mut scrnx: u16 = (ADR_BOOTINFO + 0x04) as u16;
@@ -30,6 +34,10 @@ static HANKAKU_SHIFT_TABLE: [&str; 0x80] = hankaku::HANKAKU_SHIFT_TABLE;
 
 pub struct Graphic {}
 impl Graphic {
+    pub fn new() -> Self {
+        Graphic {}
+    }
+
     pub fn init() {
         Graphic::set_palette();
         Graphic::init_screen();
@@ -81,6 +89,9 @@ impl Graphic {
     }
 
     pub fn putfont_asc_from_keyboard(x: u32, y: u32, c: u8, data: i32) {
+        if data >= 0x80 {
+            return;
+        }
         let font: &str = HANKAKU_TABLE[data as usize];
         Graphic::putfont_asc(x, y, c, font);
     }
@@ -291,3 +302,28 @@ impl RGBElement {
         }
     }
 }
+
+pub struct Printer {
+    width: u32,
+    height: u32,
+    color: u8,
+}
+
+impl Printer {
+    pub fn new(width: u32, height: u32, color: u8) -> Self {
+        Printer {
+            width,
+            height,
+            color,
+        }
+    }
+}
+
+impl fmt::Write for Printer {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        // Graphic::putfont_asc(0, 20, 10, "");
+        Graphic::putfont_asc(self.width, self.height, self.color, s);
+        Ok(())
+    }
+}
+
