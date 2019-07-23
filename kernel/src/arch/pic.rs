@@ -48,16 +48,15 @@ pub fn allow_mouse_int() {
 }
 
 #[no_mangle]
-extern "C" fn inthandler21(exp: *const u32) {
+pub extern "C" fn inthandler21(exp: *const u32) {
     asmfunc::io_out8(PIC0_OCW2, 0x61);
     let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
-    // Graphic::putfont_asc(10, 0, 10, "INT 21 (IRQ-1) : PS/2 keyboard");
     // Graphic::putfont_asc(10, 10, 10, &str::from_utf8_mut(&mut data.to_be_bytes()).unwrap());
     Graphic::putfont_asc_from_keyboard(10, 15, 10, data);
 }
 
 #[no_mangle]
-extern "C" fn inthandler27(exp: *const u32) {
+pub extern "C" fn inthandler27(exp: *const u32) {
     /* PIC0からの不完全割り込み対策 */
     /* Athlon64X2機などではチップセットの都合によりPICの初期化時にこの割り込みが一度だけ起こる */
     /* この割り込み処理関数は、その割り込みに対して何もしないでやり過ごす */
