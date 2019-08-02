@@ -4,20 +4,20 @@ use super::asmfunc;
 use super::graphic::Graphic;
 use crate::arch::asmfunc::io_out8;
 
-const PIC0_ICW1: i32 = 0x0020;
-const PIC0_OCW2: i32 = 0x0020;
-const PIC0_IMR:  i32 = 0x0021;
-const PIC0_ICW2: i32 = 0x0021;
-const PIC0_ICW3: i32 = 0x0021;
-const PIC0_ICW4: i32 = 0x0021;
-const PIC1_ICW1: i32 = 0x00a0;
-const PIC1_OCW2: i32 = 0x00a0;
-const PIC1_IMR:  i32 = 0x00a1;
-const PIC1_ICW2: i32 = 0x00a1;
-const PIC1_ICW3: i32 = 0x00a1;
-const PIC1_ICW4: i32 = 0x00a1;
+pub const PIC0_ICW1: i32 = 0x0020;
+pub const PIC0_OCW2: i32 = 0x0020;
+pub const PIC0_IMR:  i32 = 0x0021;
+pub const PIC0_ICW2: i32 = 0x0021;
+pub const PIC0_ICW3: i32 = 0x0021;
+pub const PIC0_ICW4: i32 = 0x0021;
+pub const PIC1_ICW1: i32 = 0x00a0;
+pub const PIC1_OCW2: i32 = 0x00a0;
+pub const PIC1_IMR:  i32 = 0x00a1;
+pub const PIC1_ICW2: i32 = 0x00a1;
+pub const PIC1_ICW3: i32 = 0x00a1;
+pub const PIC1_ICW4: i32 = 0x00a1;
 
-const PORT_KEYDAT: i32 = 0x0060;
+pub const PORT_KEYDAT: i32 = 0x0060;
 
 pub fn init_pic() {
     asmfunc::io_out8(PIC0_IMR, 0xff);          /* 全ての割り込みを受け付けない */
@@ -37,22 +37,9 @@ pub fn init_pic() {
     asmfunc::io_out8(PIC1_IMR, 0xff)           /* 11111111 全ての割り込みを受け付けない */
 }
 
-/* PIC1とキーボードを許可(11111001) */
-pub fn allow_pic1_keyboard_int() {
-    asmfunc::io_out8(PIC0_IMR, 0xf9);
-}
-
 /* マウスを許可(11101111) */
 pub fn allow_mouse_int() {
     asmfunc::io_out8(PIC1_IMR, 0xef);
-}
-
-#[no_mangle]
-pub extern "C" fn inthandler21(exp: *const u32) {
-    asmfunc::io_out8(PIC0_OCW2, 0x61);
-    let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
-    // Graphic::putfont_asc(10, 10, 10, &str::from_utf8_mut(&mut data.to_be_bytes()).unwrap());
-    Graphic::putfont_asc_from_keyboard(10, 15, 10, data);
 }
 
 #[no_mangle]

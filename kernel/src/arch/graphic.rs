@@ -321,7 +321,6 @@ impl Printer {
 
 impl fmt::Write for Printer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        // Graphic::putfont_asc(0, 20, 10, "");
         Graphic::putfont_asc(self.width, self.height, self.color, s);
         Ok(())
     }

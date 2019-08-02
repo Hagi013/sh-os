@@ -169,7 +169,6 @@ impl LockedHeap {
 
     pub fn init(&self, heap_addr_start: usize, size: usize) {
         *HEAP.lock() = unsafe { Some(Heap::new(heap_addr_start, size)) };
-        HEAP.force_unlock();
     }
 
 //    pub unsafe fn new(heap_addr_start: usize, heap_size: usize) -> Self {

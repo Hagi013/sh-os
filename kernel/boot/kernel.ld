@@ -52,6 +52,7 @@ SECTIONS{
     AT(LOADADDR(.data) + SIZEOF(.data)) SUBALIGN(4)
     {
         *(.bss)
+        *(.bss*)
     }
 
     /* 上記以外のセクションは無視する */
