@@ -22,7 +22,7 @@ pub fn allow_pic1_keyboard_int() {
     unsafe {
         let queue: SimpleQueue<i32> = SimpleQueue::new();
         KEYBOARD_QUEUE = Some(queue);
-    };
+    }
 }
 
 #[no_mangle]
@@ -48,12 +48,14 @@ pub extern "C" fn inthandler21(exp: *const u32) {
 }
 
 pub fn is_existing() -> bool {
-    let mut printer = Printer::new(310, 400, 10);
-    write!(printer, "{:?}", unsafe { ptr::read(&KEYBOARD_QUEUE).unwrap().is_existing() }).unwrap();
+//    let mut printer = Printer::new(310, 400, 10);
+//    write!(printer, "{:?}", unsafe { &KEYBOARD_QUEUE as *const _ }).unwrap();
     unsafe {
-        match ptr::read(&KEYBOARD_QUEUE) {
+        // ここはread_volatileにしないとなぜか副作用をこの処理ないで記述しないと実行されない
+        // 参考: https://doc.rust-lang.org/std/ptr/fn.read_volatile.html
+        match ptr::read_volatile(&KEYBOARD_QUEUE) {
             Some(checker) => checker.is_existing(),
-            None => false
+            None => false,
         }
     }
 }
