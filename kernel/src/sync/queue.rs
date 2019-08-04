@@ -61,46 +61,47 @@ const LIMIT: usize = CAPACITY - INITIAL_INDEX;
 
 #[derive(Debug)]
 pub struct SimpleQueue<T: Copy> {
-    queue: [T; LIMIT],
     head: usize,
     tail: usize,
     count: usize,
+    queue: [T; LIMIT],
 }
 
 impl<T: Copy> SimpleQueue<T> {
     pub fn new() -> Self {
         SimpleQueue {
-            queue: [unsafe { *(0 as *mut T) }; LIMIT],
             head: INITIAL_INDEX,
             tail: INITIAL_INDEX,
             count: 0,
+            queue: [unsafe { *(0 as *mut T) }; LIMIT],
         }
     }
 
     pub fn enqueue(&mut self, data: T) {
         if self.len() == LIMIT { return; }
 
+        self.count += 1;
+        self.queue[self.tail] = data;
+
         if SimpleQueue::<T>::check_index_limit(self.tail) {
             self.tail += 1;
         } else {
             self.tail = INITIAL_INDEX;
         }
-
-        self.count += 1;
-        self.queue[self.tail] = data;
     }
 
     pub fn dequeue(&mut self) -> Option<T> {
         if self.len() <= 0 { return None }
+
+        self.count -= 1;
+        let data = Some(self.queue[self.head]);
 
         if SimpleQueue::<T>::check_index_limit(self.head) {
             self.head += 1;
         } else {
             self.head = INITIAL_INDEX;
         }
-
-        self.count -= 1;
-        Some(self.queue[self.head])
+        data
     }
 
     pub fn len(&self) -> usize {
