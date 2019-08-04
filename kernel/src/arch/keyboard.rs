@@ -1,7 +1,7 @@
 use core::ptr;
 
 use super::asmfunc;
-use super::graphic::Graphic;
+//use super::graphic::Graphic;
 
 use super::pic::PIC0_IMR;
 use super::pic::PIC0_OCW2;
@@ -63,7 +63,7 @@ pub fn is_existing() -> bool {
 pub fn get_data() -> Result<i32, ()> {
     unsafe {
         if let Some(mut queue) = ptr::read(&KEYBOARD_QUEUE) {
-            let data = queue.dequeue().unwrap();
+            let data: i32 = queue.dequeue().ok_or(())?;
             KEYBOARD_QUEUE = Some(queue);
             Ok(data)
         } else {

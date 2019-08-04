@@ -103,9 +103,13 @@ pub extern fn init_os() {
     loop {
         if keyboard::is_existing() {
             asmfunc::io_cli();
-            let data: i32 = keyboard::get_data().unwrap();
-            asmfunc::io_sti();
-            Graphic::putfont_asc_from_keyboard(idx, 15, 10, data);
+            match keyboard::get_data() {
+                Ok(data) => {
+                    asmfunc::io_sti();
+                    Graphic::putfont_asc_from_keyboard(idx, 15, 10, data);
+                },
+                Err(_) => asmfunc::io_sti(),
+            };
             idx += 8;
         }
     }
