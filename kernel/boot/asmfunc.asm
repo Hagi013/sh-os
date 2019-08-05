@@ -9,8 +9,8 @@ bits 32
 ;global load_cr0, store_cr0
 ;global load_tr
 ;global far_jmp
-global asm_inthandler21, asm_inthandler27
-extern inthandler21, inthandler27
+global asm_inthandler21, asm_inthandler27, asm_inthandler2c
+extern inthandler21, inthandler27, inthandler2c
 
 section .text
 
@@ -132,6 +132,22 @@ asm_inthandler27:
     mov ds, ax
     mov es, ax
     call inthandler27
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler2c:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call inthandler2c
     pop eax
     popad
     pop ds

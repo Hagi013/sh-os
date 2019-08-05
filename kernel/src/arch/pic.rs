@@ -2,7 +2,7 @@ use core::str;
 
 use super::asmfunc;
 use super::graphic::Graphic;
-use crate::arch::asmfunc::io_out8;
+use crate::arch::asmfunc::{io_out8, io_in8};
 
 pub const PIC0_ICW1: i32 = 0x0020;
 pub const PIC0_OCW2: i32 = 0x0020;
@@ -18,6 +18,15 @@ pub const PIC1_ICW3: i32 = 0x00a1;
 pub const PIC1_ICW4: i32 = 0x00a1;
 
 pub const PORT_KEYDAT: i32 = 0x0060;
+pub const PORT_KEYSTA: i32 = 0x0064;
+pub const PORT_KEYCMD: i32 = 0x0064;
+pub const KEYSTA_SEND_NOTREADY: u8 = 0x02;
+pub const KEYCMD_WRITE_MODE: u8 = 0x60;
+pub const KBC_MODE: u8 = 0x47;
+
+pub const KEYCMD_SENDTO_MOUSE: u8 = 0xd4;
+pub const MOUSECMD_ENABLE: u8 = 0xf4;
+
 
 pub fn init_pic() {
     asmfunc::io_out8(PIC0_IMR, 0xff);          /* 全ての割り込みを受け付けない */
@@ -38,8 +47,16 @@ pub fn init_pic() {
 }
 
 /* マウスを許可(11101111) */
-pub fn allow_mouse_int() {
-    asmfunc::io_out8(PIC1_IMR, 0xef);
+//pub fn allow_mouse_int() {
+//    asmfunc::io_out8(PIC1_IMR, 0xef);
+//}
+
+pub fn wait_kbc_sendready() {
+    loop {
+        if (asmfunc::io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY as i32) == 0x00 {
+            break;
+        }
+    }
 }
 
 #[no_mangle]

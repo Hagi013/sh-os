@@ -33,6 +33,7 @@ use self::arch::asmfunc;
 use self::arch::dsctbl::DscTbl;
 use self::arch::pic;
 use self::arch::keyboard;
+use self::arch::mouse;
 
 pub mod sync;
 use self::sync::queue;
@@ -97,7 +98,7 @@ pub extern fn init_os() {
 //    Graphic::putfont_asc(210, 200, 10, &b);
 
     keyboard::allow_pic1_keyboard_int();
-    pic::allow_mouse_int();
+    mouse::allow_mouse_int();
 
     let mut idx: u32 = 10;
     loop {

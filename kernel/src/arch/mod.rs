@@ -5,3 +5,4 @@ pub mod hankaku;
 pub mod dsctbl;
 pub mod pic;
 pub mod keyboard;
+pub mod mouse;
