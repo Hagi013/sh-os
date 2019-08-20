@@ -35,6 +35,8 @@ use self::arch::pic;
 use self::arch::keyboard;
 use self::arch::mouse;
 
+pub mod window;
+
 pub mod sync;
 use self::sync::queue;
 
@@ -69,8 +71,6 @@ fn init_heap() {
 pub extern fn init_os() {
 
     Graphic::init();
-//    Graphic::putfont_asc(210, 120, 10, "12345");
-//    Graphic::putfont_asc(210, 140, 10, "abcd");
     Graphic::putfont_asc(210, 150, 10, "rio-os");
 
     pic::init_pic();
@@ -85,14 +85,14 @@ pub extern fn init_os() {
     let a: String = "String Alloc!!".to_string();
     Graphic::putfont_asc(210, 180, 10, &a);
 
-    let mut v: VecDeque<u32> = VecDeque::new();
-    v.push_front(1);
-    v.push_front(2);
-    v.push_back(3);
-    for i in 0..v.len() {
-        let mut printer = Printer::new((210 + i * 10) as u32, (480 + i * 10) as u32, 10);
-        write!(printer, "{:?}", v.pop_front().unwrap()).unwrap();
-    }
+//    let mut v: VecDeque<u32> = VecDeque::new();
+//    v.push_front(1);
+//    v.push_front(2);
+//    v.push_back(3);
+//    for i in 0..v.len() {
+//        let mut printer = Printer::new((210 + i * 10) as u32, (480 + i * 10) as u32, 10);
+//        write!(printer, "{:?}", v.pop_front().unwrap()).unwrap();
+//    }
 
 //    let b: String = "String Alloc!!2222".to_string();
 //    Graphic::putfont_asc(210, 200, 10, &b);
@@ -102,8 +102,12 @@ pub extern fn init_os() {
 
     let mut idx: u32 = 10;
     loop {
+        asmfunc::io_cli();
+        if !keyboard::is_existing() && !mouse::is_existing() {
+            asmfunc::io_stihlt();
+            continue;
+        }
         if keyboard::is_existing() {
-            asmfunc::io_cli();
             match keyboard::get_data() {
                 Ok(data) => {
                     asmfunc::io_sti();
@@ -113,6 +117,32 @@ pub extern fn init_os() {
             };
             idx += 8;
         }
+        if mouse::is_existing() {
+            match mouse::get_data() {
+                Ok(data) => {
+                    asmfunc::io_sti();
+                    match data {
+                        Some(status) => {
+                            // Graphic::putfont_asc(200, 200, 10, "mouse data is existing.");
+//                            let mut printer = Printer::new(200, 215, 10);
+//                            write!(printer, "{:?}", status.0).unwrap();
+//                            Graphic::putfont_asc(status.1 as u32, 300, 10, "X");
+                            Graphic::putfont_asc(101, status.2 as u32, 10, "Y");
+
+                        },
+                        None => {
+                            // Graphic::putfont_asc(200, 200, 10, "mouse data is not existing kita.")
+                        },
+                    }
+                },
+                Err(message) => {
+                    asmfunc::io_sti();
+                    let mut printer = Printer::new(200, 215, 10);
+                    write!(printer, "{:?}", message).unwrap();
+                },
+            }
+        }
+
     }
 }
 
