@@ -5,6 +5,17 @@ use core::intrinsics::transmute;
 
 const MAX_SHEETS: i16 = 256;
 
+/* ToDo
+    0. windowを受け取った時のrendering
+        - 実際の色付けや位置決めはwindowの管理外で、window.bufに含める
+        - buf配列要素に対する添字(アドレス)は、それぞれbase_x, base_y, xsize, ysizeで決まる
+        - 受け取った段階で一番上にrenderingさせる
+    1. windowの追加時のrendering
+    2. slide時のrendering
+    3. top down時のrendering
+        - どうやって順番を管理するか
+*/
+
 pub struct WindowsManager {
     head: Option<*mut Window>,
     tail: Option<*mut Window>,
