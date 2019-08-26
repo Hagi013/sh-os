@@ -104,6 +104,85 @@ impl<T: Copy> SimpleQueue<T> {
         data
     }
 
+    pub fn add(&mut self, data: T, index: usize) {
+        if self.len() == LIMIT { return; }
+
+        // 一番最後に追加したい場合
+        if index == self.len() {
+            self.enqueue(data);
+            return;
+        }
+
+        self.count += 1;
+        let rest_count = self.len() - index;
+        for i in 0..rest_count {
+            let mut real_idx = (self.len() - i) - 1;
+            // 配列が循環している状態でも正しく値を取得できるように
+            if self.head + real_idx >= LIMIT - 1 {
+                real_idx = real_idx - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+            }
+
+            let mut real_idx_minus_one = real_idx - 1;
+            if self.head + real_idx_minus_one >= LIMIT - 1 {
+                real_idx_minus_one = real_idx_minus_one - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+            }
+
+            self.queue[real_idx] = self.queue[real_idx_minus_one];
+        }
+        // 値のセット
+        let mut target_idx = index;
+        if self.head + target_idx >= LIMIT - 1 {
+            target_idx = target_idx - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+        }
+        self.queue[target_idx] = data;
+    }
+
+    pub fn remove(&mut self, mut index: usize) -> Option<T> {
+        if self.len() <= 0 { return None }
+
+        self.count -= 1;
+
+        // 0番目を取得する場合はdequeueして終わり
+        if index == 0 {
+            return self.dequeue();
+        }
+
+        // 1番最後の要素を取得する場合も取得して、tailから1引けば終わり
+        // すでにcountがマイナスされているので、条件を `index == self.len()` としている
+        if index == self.len() {
+            self.tail -= 1;
+            // 配列が循環している状態でも正しく値を取得できるように
+            if self.head + index >= LIMIT - 1 {
+                index = index - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+            }
+            return Some(self.queue[index]);
+        }
+
+        let mut real_idx: usize = index;
+        if self.head + index >= LIMIT - 1 {
+            real_idx = index - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+        }
+        // 値の取得
+        let data = Some(self.queue[real_idx]);
+
+        // 端じゃない要素の場合は並び替えが必要になる
+        for i in index..self.len() {
+            let mut target_idx = self.head + i;
+            if (self.head + target_idx) >= (LIMIT - 1) {
+                target_idx = index - (LIMIT - 1 - self.head) + INITIAL_INDEX
+            };
+
+            let mut target_idx_plus_one = target_idx + 1;
+            if (self.head + target_idx_plus_one) >= (LIMIT - 1) {
+                target_idx_plus_one = index - (LIMIT - 1 - self.head) + INITIAL_INDEX
+            };
+            self.queue[target_idx] = self.queue[target_idx_plus_one];
+        }
+        self.tail -= 1;
+
+        return data;
+    }
+
     pub fn len(&self) -> usize {
         self.count
     }
