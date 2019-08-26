@@ -36,6 +36,7 @@ use self::arch::keyboard;
 use self::arch::mouse;
 
 pub mod window;
+use window::{ Window, WindowsManager };
 
 pub mod sync;
 use self::sync::queue;
@@ -78,7 +79,7 @@ pub extern fn init_os() {
     asmfunc::io_sti();
 
     let mouse: MouseGraphic = MouseGraphic::new();
-    mouse.init_mouse_cursor(14);
+    let mouse_state = mouse.init_mouse_cursor(14);
 
     init_heap();
 
@@ -99,6 +100,9 @@ pub extern fn init_os() {
 
     keyboard::allow_pic1_keyboard_int();
     mouse::allow_mouse_int();
+    let mut window_manager: WindowsManager = WindowsManager::new();
+
+    let mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0);
 
     let mut idx: u32 = 10;
     loop {
@@ -124,10 +128,10 @@ pub extern fn init_os() {
                     match data {
                         Some(status) => {
                             // Graphic::putfont_asc(200, 200, 10, "mouse data is existing.");
-//                            let mut printer = Printer::new(200, 215, 10);
-//                            write!(printer, "{:?}", status.0).unwrap();
-//                            Graphic::putfont_asc(status.1 as u32, 300, 10, "X");
-                            Graphic::putfont_asc(101, status.2 as u32, 10, "Y");
+                            let mut printer = Printer::new(200, 215, 10);
+                            write!(printer, "{:?}", status.2).unwrap();
+                            // Graphic::putfont_asc(status.1 as u32, 300, 10, "X");
+                            // Graphic::putfont_asc(101, status.2 as u32, 10, "Y");
 
                         },
                         None => {

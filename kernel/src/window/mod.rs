@@ -3,7 +3,13 @@ use core::mem::transmute_copy;
 use core::mem::replace;
 use core::intrinsics::transmute;
 
-const MAX_SHEETS: i16 = 256;
+use super::sync::queue::SimpleQueue;
+
+// SimpleQueueのCAPACITYと同じ値
+const MAX_SHEETS: i16 = 30;
+const ADR_BOOTINFO: u32 = 0x00000ff0;
+const SCRNX: u16 = *(ADR_BOOTINFO + 0x04);
+const SCRNY: u16 = *(ADR_BOOTINFO + 0x06);
 
 /* ToDo
     0. windowを受け取った時のrendering
@@ -20,6 +26,8 @@ pub struct WindowsManager {
     head: Option<*mut Window>,
     tail: Option<*mut Window>,
     count: i16,
+    windows_map: [u8; (SCRNX * SCRNY + SCRNX) as usize],
+    windows_order: SimpleQueue<*mut Window>,
 }
 
 impl WindowsManager {
@@ -28,6 +36,8 @@ impl WindowsManager {
             head: None,
             tail: None,
             count: 0,
+            windows_map: [0; (SCRNX * SCRNY + SCRNX) as usize],
+            windows_order: SimpleQueue::new(),
         }
     }
 
@@ -111,7 +121,22 @@ impl WindowsManager {
     pub fn create_window(&mut self, base_x: u16, base_y: u16, xsize: u16, ysize: u16, buf: *mut u8) -> Window {
         let mut n_w = Window::new(base_x, base_y, xsize, ysize, buf);
         self.add(n_w);
+        self.refresh_map(base_x, base_y, xsize, ysize, &n_w);
         return n_w;
+    }
+
+    pub fn refresh_map(&mut self, base_x: u16, base_y: u16, xsize: u16, ysize: u16, w_r: &Window) {
+        for y in 0..base_y {
+            let vy: usize = (ysize + y) as usize;
+            for x in 0..base_x {
+                let vx: usize = (xsize + x) as usize;
+                self.windows_map[vy * SCRNX + vx] = (w_r as *const u8) as u8;
+            }
+        }
+    }
+
+    pub fn move_window(&mut self, mut w: Window, x: u16, y: u16) {
+
     }
 }
 
@@ -122,7 +147,7 @@ pub struct Window {
     base_y: u16,
     xsize: u16,
     ysize: u16,
-    height: u16,
+    priority: u16,
     buf: *mut u8,
     pub prev: Option<*mut Window>,
     pub next: Option<*mut Window>,
@@ -136,7 +161,7 @@ impl Window {
             xsize,
             ysize,
             buf,
-            height: 0,
+            priority: 0,
             next: None,
             prev: None,
         }
