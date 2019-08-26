@@ -55,6 +55,8 @@ impl WindowsManager {
             if let Some(window) = self.tail {
                 self.tail = Some(n_w_pointer);
                 n_w.next = None;
+                (*window).next = Some(n_w_pointer);
+                n_w.prev = Some(window);
             } else {
                 self.tail = Some(n_w_pointer);
                 if self.count == 0 && self.head.is_none() {
