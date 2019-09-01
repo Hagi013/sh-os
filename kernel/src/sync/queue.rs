@@ -1,7 +1,8 @@
 use alloc::collections::vec_deque::VecDeque;
 
 use super::super::spin::mutex::Mutex;
-//use alloc::string::String;
+use alloc::string::{String, ToString};
+use core::cmp::PartialEq;
 //use alloc::borrow::ToOwned;
 
 // static HEAP: Mutex<Option<Heap>> = LockedHeap::empty();
@@ -60,14 +61,22 @@ const INITIAL_INDEX: usize = 0;
 const LIMIT: usize = CAPACITY - INITIAL_INDEX;
 
 #[derive(Debug)]
-pub struct SimpleQueue<T: Copy> {
+pub struct SimpleQueue<T>
+where
+    T: Copy,
+    T: PartialEq
+{
     head: usize,
     tail: usize,
     count: usize,
     queue: [T; LIMIT],
 }
 
-impl<T: Copy> SimpleQueue<T> {
+impl<T> SimpleQueue<T>
+where
+    T: Copy,
+    T: PartialEq
+{
     pub fn new() -> Self {
         SimpleQueue {
             head: INITIAL_INDEX,
@@ -90,6 +99,10 @@ impl<T: Copy> SimpleQueue<T> {
         }
     }
 
+    pub fn enqueue_front(&mut self, data: T) {
+        self.add(data, 0);
+    }
+
     pub fn dequeue(&mut self) -> Option<T> {
         if self.len() <= 0 { return None }
 
@@ -102,6 +115,10 @@ impl<T: Copy> SimpleQueue<T> {
             self.head = INITIAL_INDEX;
         }
         data
+    }
+
+    pub fn dequeue_front(&mut self, data: T) -> Option<T> {
+        return self.remove(0);
     }
 
     pub fn add(&mut self, data: T, index: usize) {
@@ -183,8 +200,34 @@ impl<T: Copy> SimpleQueue<T> {
         return data;
     }
 
+    pub fn remove_entry(&mut self, data: T) -> Result<(), String> {
+        for idx in 0..self.len() {
+            let i = self.get_index_in_queue(idx);
+            if data == self.queue[i] {
+                self.remove(idx);
+                return Ok(());
+            }
+        }
+        return Err("Removing Target is not existing.".to_string());
+    }
+
+    pub fn get(&self, idx: usize) -> Option<T> {
+        if idx < 0 { return None; }
+        if idx >= self.len() { return None; }
+        let i = self.get_index_in_queue(idx);
+        return Some(self.queue[i]);
+    }
+
     pub fn len(&self) -> usize {
         self.count
+    }
+
+    fn get_index_in_queue(&self, idx: usize) -> usize {
+        let mut i = idx;
+        if idx + self.head > LIMIT - 1 {
+            i = i - (LIMIT - 1 - self.head) + INITIAL_INDEX;
+        }
+        return i;
     }
 
     fn check_index_limit(index: usize) -> bool {
