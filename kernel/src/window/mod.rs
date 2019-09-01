@@ -51,7 +51,7 @@ impl WindowsManager {
         }
 
         unsafe {
-            let n_w_pointer: *mut Window = transmute_copy::<Window, *mut Window>(&n_w);
+            let n_w_pointer: *mut Window = &mut n_w as *mut Window;
             if let Some(window) = self.tail {
                 self.tail = Some(n_w_pointer);
                 n_w.next = None;
@@ -66,11 +66,13 @@ impl WindowsManager {
                 }
             }
             self.count += 1;
+            // Windowを作成した時は先頭に追加するようにする
+            self.windows_order.add(n_w_pointer, 0);
             return Ok(());
         }
     }
 
-    pub fn remove(&mut self, t_w: Window) -> Result<(), String> {
+    pub fn remove(&mut self, mut t_w: Window) -> Result<(), String> {
         if self.count == 0 {
             return Err("Window Manager's count is 0.".to_string());
         }
@@ -78,11 +80,13 @@ impl WindowsManager {
         if self.count == 0 {
             self.head = None;
             self.tail = None;
+            let w_pointer: *mut Window = &mut t_w as *mut Window;
+            self.windows_order.remove_entry(w_pointer);
             return Ok(());
         }
 
         unsafe {
-            let w_pointer: *mut Window = transmute_copy::<Window, *mut Window>(&t_w);
+            let w_pointer: *mut Window = &mut t_w as *mut Window;
 
             if self.head.is_some() && self.tail.is_some() { // 基本的に要素が存在する場合は、headとtailは存在するはず
                 let head: *mut Window = self.head.unwrap();
@@ -111,6 +115,7 @@ impl WindowsManager {
                     self.head = None;
                     self.tail = None;
                 }
+                self.windows_order.remove_entry(w_pointer);
                 return Ok(());
             } else {
                 return Err("Element in WindowsManager is null.".to_string());
@@ -123,22 +128,36 @@ impl WindowsManager {
     pub fn create_window(&mut self, base_x: u16, base_y: u16, xsize: u16, ysize: u16, buf: *mut u8) -> Window {
         let mut n_w = Window::new(base_x, base_y, xsize, ysize, buf);
         self.add(n_w);
-        self.refresh_map(base_x, base_y, xsize, ysize, &n_w);
+        self.refresh_map(base_x, base_y, xsize, ysize, n_w);
         return n_w;
     }
 
-    pub fn refresh_map(&mut self, base_x: u16, base_y: u16, xsize: u16, ysize: u16, w_r: &Window) {
-        for y in 0..base_y {
-            let vy: usize = (ysize + y) as usize;
-            for x in 0..base_x {
-                let vx: usize = (xsize + x) as usize;
-                self.windows_map[vy * SCRNX + vx] = (w_r as *const u8) as u8;
+    pub fn refresh_map(&mut self, base_x: u16, base_y: u16, xsize: u16, ysize: u16, mut w_r: Window) {
+        let p_w_r = &mut w_r as *mut Window;
+        let (from_x, from_y, to_x, to_y) = self.check_size(base_x, base_y, xsize, ysize);
+        for y in 0..from_y {
+            let vy: usize = (to_y + y) as usize;
+            for x in 0..from_x {
+                let vx: usize = (to_x + x) as usize;
+                unsafe {
+                    self.windows_map[vy * (SCRNX as usize) + vx] = p_w_r as *const u8;
+                }
             }
         }
     }
 
     pub fn move_window(&mut self, mut w: Window, x: u16, y: u16) {
 
+    }
+
+    fn check_size(&self, base_x: u16, base_y: u16, xsize: u16, ysize: u16) -> (u16, u16, u16, u16) {
+        let from_x = if base_x < 0 { 0 } else { base_x };
+        let from_y = if base_y < 0 { 0 } else { base_y };
+        unsafe {
+            let to_x = if base_x + xsize > SCRNX { SCRNX } else { base_x + xsize };
+            let to_y = if base_y + ysize > SCRNY { SCRNY } else { base_y + ysize };
+            return (from_x, from_y, to_x, to_y);
+        }
     }
 }
 
