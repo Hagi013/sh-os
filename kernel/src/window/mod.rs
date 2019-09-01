@@ -1,15 +1,21 @@
 use alloc::string::{String, ToString};
-use core::mem::transmute_copy;
+use alloc::vec::Vec;
+
 use core::mem::replace;
-use core::intrinsics::transmute;
 
 use super::sync::queue::SimpleQueue;
+use super::arch::boot_info::BootInfo;
+
+use super::Printer;
+use core::fmt::Write;
 
 // SimpleQueueのCAPACITYと同じ値
 const MAX_SHEETS: i16 = 30;
-const ADR_BOOTINFO: u32 = 0x00000ff0;
-const SCRNX: u16 = *(ADR_BOOTINFO + 0x04);
-const SCRNY: u16 = *(ADR_BOOTINFO + 0x06);
+
+static mut SCRNX: u16 = 320;
+static mut SCRNY: u16 = 240;
+static mut VRAM: u32 = 0x000a0000;
+
 
 /* ToDo
     0. windowを受け取った時のrendering
@@ -26,17 +32,25 @@ pub struct WindowsManager {
     head: Option<*mut Window>,
     tail: Option<*mut Window>,
     count: i16,
-    windows_map: [u8; (SCRNX * SCRNY + SCRNX) as usize],
+    windows_map: Vec<*const u8>,
     windows_order: SimpleQueue<*mut Window>,
 }
 
 impl WindowsManager {
     pub fn new() -> Self {
+        let b: BootInfo = BootInfo::new();
+        let mut window_size: usize = 0;
+        unsafe {
+            SCRNX = b.scrnx;
+            SCRNY = b.scrny;
+            VRAM =  b.vram;
+            window_size = (SCRNX as usize) * (SCRNY as usize) + (SCRNX as usize);
+        }
         WindowsManager {
             head: None,
             tail: None,
             count: 0,
-            windows_map: [0; (SCRNX * SCRNY + SCRNX) as usize],
+            windows_map: vec![0 as *const u8; window_size],
             windows_order: SimpleQueue::new(),
         }
     }
