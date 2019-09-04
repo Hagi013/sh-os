@@ -53,6 +53,9 @@ pub mod spin;
 use spin::mutex::Mutex;
 use spin::mutex::MutexGuard;
 
+#[allow(unused_imports)]
+pub mod util;
+
 use alloc::collections::vec_deque::VecDeque;
 
 fn init_heap() {
@@ -102,7 +105,7 @@ pub extern fn init_os() {
     mouse::allow_mouse_int();
     let mut window_manager: WindowsManager = WindowsManager::new();
 
-    let mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0);
+    let mouse_window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
 
     let mut idx: u32 = 10;
     loop {
