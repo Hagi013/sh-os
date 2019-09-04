@@ -218,6 +218,16 @@ where
         return Some(self.queue[i]);
     }
 
+    pub fn get_position_in_queue(&self, data: T) -> Result<usize, String> {
+        if self.len() <= 0 { return Err("queue is empty.".to_string()) }
+        for i in 0..self.len() {
+            if Some(data) == self.get(i) {
+                return Ok(i)
+            }
+        }
+        Err("data is not existing".to_string())
+    }
+
     pub fn len(&self) -> usize {
         self.count
     }
