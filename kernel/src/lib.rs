@@ -1,10 +1,14 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(test_runner)]
+#![reexport_test_harness_main = "test_main"]
 #![feature(lang_items, start, asm, const_raw_ptr_deref)]
 #![feature(const_fn)]
 #![feature(allocator_api)]
 #![feature(alloc_error_handler)]
 #![feature(alloc)]
+
 
 use core::panic::PanicInfo;
 use core::str;
@@ -70,6 +74,7 @@ fn init_heap() {
     ALLOCATOR.init(heap_start, heap_size);
 }
 
+#[cfg(not(test))]
 #[start]
 #[no_mangle]
 pub extern fn init_os() {
@@ -186,4 +191,30 @@ fn alloc_error_handler(layout: Layout) -> ! {
     loop {
         asmfunc::io_hlt();
     }
+}
+
+#[cfg(test)]
+#[no_mangle]
+pub extern "C" fn main() {
+    test_main();
+}
+
+#[allow(unused_imports)]
+#[cfg(all(test))]
+#[macro_use]
+pub mod arch;
+
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+//    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
+}
+
+#[test_case]
+fn trivial_assertion() {
+//    println!("trivial assertion... ");
+    assert_eq!(1, 1);
+//    println!("[ok]");
 }

@@ -263,3 +263,14 @@ where
     }
 
 }
+
+//#[cfg(test)]
+//mod test {
+//    use self::util::linked_list::LinkedList;
+//
+//    #[test]
+//    fn new() {
+//        let ll: LinkedList<i32> = LinkedList::new();
+//        assert_eq!(ll.len(), 0);
+//    }
+//}

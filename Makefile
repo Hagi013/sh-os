@@ -50,3 +50,6 @@ clean:
 
 od:
 	od $(BUILD_DIR)/$(BUILD_NAME).img -t x1z -A x
+
+test:
+	cd ${KERNEL_DIR}; set RUST_BACKTRACE=1; `which cargo` xtest

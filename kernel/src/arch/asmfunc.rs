@@ -54,6 +54,7 @@ pub fn io_out8(port: i32, data: u8) {
     }
 }
 
+#[cfg(all(not(test)))]
 pub fn io_load_eflags() -> u32 {
     let mut eflags: u32 = 0;
     unsafe {
@@ -69,11 +70,42 @@ pub fn io_load_eflags() -> u32 {
     return eflags;
 }
 
+#[cfg(all(not(test)))]
 pub fn io_store_eflags(eflags: u32) {
     unsafe {
         asm!("
         push $0
         popfd
+        "
+        :
+        : "r"(eflags)
+        : "cc"
+        : "intel");
+    }
+}
+
+#[cfg(all(test))]
+pub fn io_load_eflags() -> u32 {
+    let mut eflags: u32 = 0;
+    unsafe {
+        asm!("
+        pushfq
+        pop $0
+        "
+        : "=r"(eflags)
+        :
+        :
+        : "intel");
+    }
+    return eflags;
+}
+
+#[cfg(all(test))]
+pub fn io_store_eflags(eflags: u32) {
+    unsafe {
+        asm!("
+        push $0
+        popfq
         "
         :
         : "r"(eflags)

@@ -19,6 +19,17 @@ panic = "abort"
 opt-level = 3
 lto = true
 
+[profile.test]
+opt-level = 'z'
+debug = 2
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 16
+panic = 'unwind'
+incremental = true
+overflow-checks = true
+
 [dependencies]
 
 [package.metadata.cargo-xbuild]
