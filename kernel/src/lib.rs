@@ -110,7 +110,7 @@ pub extern fn init_os() {
     mouse::allow_mouse_int();
     let mut window_manager: WindowsManager = WindowsManager::new();
 
-    let mouse_window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
+    let mut mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
 
     let mut idx: u32 = 10;
     loop {
@@ -140,6 +140,15 @@ pub extern fn init_os() {
                             write!(printer, "{:?}", status.2).unwrap();
                             // Graphic::putfont_asc(status.1 as u32, 300, 10, "X");
                             // Graphic::putfont_asc(101, status.2 as u32, 10, "Y");
+                            let x: i32 = status.1;
+                            let y: i32 = status.2;
+//                            let mut printer = Printer::new(500, 100, 10);
+//                            write!(printer, "{:?}", status.1).unwrap();
+
+//                            let mut printer = Printer::new(500, 115, 10);
+//                            write!(printer, "{:?}", -1).unwrap();
+
+                            mouse_window = window_manager.move_window(mouse_window, x, y).unwrap_or(mouse_window);
 
                         },
                         None => {
@@ -193,28 +202,28 @@ fn alloc_error_handler(layout: Layout) -> ! {
     }
 }
 
-#[cfg(test)]
-#[no_mangle]
-pub extern "C" fn main() {
-    test_main();
-}
-
-#[allow(unused_imports)]
-#[cfg(all(test))]
-#[macro_use]
-pub mod arch;
-
-#[cfg(test)]
-fn test_runner(tests: &[&dyn Fn()]) {
-//    println!("Running {} tests", tests.len());
-    for test in tests {
-        test();
-    }
-}
-
-#[test_case]
-fn trivial_assertion() {
-//    println!("trivial assertion... ");
-    assert_eq!(1, 1);
-//    println!("[ok]");
-}
+//#[cfg(test)]
+//#[no_mangle]
+//pub extern "C" fn main() {
+//    test_main();
+//}
+//
+//#[allow(unused_imports)]
+//#[cfg(all(test))]
+//#[macro_use]
+//pub mod arch;
+//
+//#[cfg(test)]
+//fn test_runner(tests: &[&dyn Fn()]) {
+////    println!("Running {} tests", tests.len());
+//    for test in tests {
+//        test();
+//    }
+//}
+//
+//#[test_case]
+//fn trivial_assertion() {
+////    println!("trivial assertion... ");
+//    assert_eq!(1, 1);
+////    println!("[ok]");
+//}

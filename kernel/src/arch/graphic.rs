@@ -150,7 +150,7 @@ impl MouseGraphic {
         }
     }
 
-    pub fn init_mouse_cursor(&self, c: u8) -> (*mut u8, u16, u16, u16, u16) {
+    pub fn init_mouse_cursor(&self, c: u8) -> (*mut u8, i32, i32, u16, u16) {
         static MOUSE_CURSOR: [[u8; 16]; 16] = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2],
             [1,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2],
@@ -192,7 +192,7 @@ impl MouseGraphic {
         let mx: u32 = (*get_scrnx() as u32 - 16) / 2;   /* 画面中央になるように座標計算 */
         let my: u32 = (*get_scrny() as u32 - 28 - 16) / 2;
         Graphic::putblock(16, 16, mx, my, &mouse_buf as *const u8, 16);
-        return (&mouse_buf as *const u8 as *mut u8, mx as u16, my as u16, 16, 16);
+        return (&mouse_buf as *const u8 as *mut u8, mx as i32, my as i32, 16, 16);
     }
 }
 
@@ -326,4 +326,3 @@ impl fmt::Write for Printer {
         Ok(())
     }
 }
-

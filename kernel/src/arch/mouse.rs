@@ -108,7 +108,7 @@ pub extern "C" fn inthandler2c(esp: *const usize) {
 //    let mut printer = Printer::new(310, 400, 10);
 //    write!(printer, "{:?}", data).unwrap();
     unsafe {
-        match ptr::read(&MOUSE_QUEUE) {
+        match ptr::read_volatile(&MOUSE_QUEUE) {
             Some(mut queue) => {
                 queue.enqueue(data);
                 MOUSE_QUEUE = Some(queue);
