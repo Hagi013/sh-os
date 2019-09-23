@@ -1,4 +1,5 @@
 use alloc::string::{String, ToString};
+use alloc::boxed;
 use core::mem::replace;
 use core::fmt::Debug;
 
@@ -62,7 +63,7 @@ impl<T> LinkedList<T>
     // addするときは一番最後に入れる
     pub fn add(&mut self, data: T) -> Result<(), String> {
         unsafe {
-            let node: *mut LinkedListNode<T> = Box::into_raw(Box::new(LinkedListNode::new(data)));
+            let node: *mut LinkedListNode<T> = boxed::Box::into_raw(boxed::Box::new(LinkedListNode::new(data)));
             if self.len() == 0 {
                 self.head = Some(node);
                 self.tail = Some(node);
