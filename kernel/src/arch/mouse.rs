@@ -105,8 +105,6 @@ pub extern "C" fn inthandler2c(esp: *const usize) {
     asmfunc::io_out8(PIC1_OCW2, 0x64);
     asmfunc::io_out8(PIC0_OCW2, 0x62);
     let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
-//    let mut printer = Printer::new(310, 400, 10);
-//    write!(printer, "{:?}", data).unwrap();
     unsafe {
         match ptr::read_volatile(&MOUSE_QUEUE) {
             Some(mut queue) => {
