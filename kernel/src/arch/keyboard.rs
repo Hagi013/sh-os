@@ -35,7 +35,7 @@ pub fn allow_pic1_keyboard_int() {
 }
 
 #[no_mangle]
-pub extern "C" fn inthandler21(exp: *const u32) {
+pub extern "C" fn inthandler21(esp: *const u32) {
     asmfunc::io_out8(PIC0_OCW2, 0x61);
     let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
 

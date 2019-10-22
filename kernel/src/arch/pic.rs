@@ -60,7 +60,7 @@ pub fn wait_kbc_sendready() {
 }
 
 #[no_mangle]
-pub extern "C" fn inthandler27(exp: *const u32) {
+pub extern "C" fn inthandler27(esp: *const u32) {
     /* PIC0からの不完全割り込み対策 */
     /* Athlon64X2機などではチップセットの都合によりPICの初期化時にこの割り込みが一度だけ起こる */
     /* この割り込み処理関数は、その割り込みに対して何もしないでやり過ごす */
