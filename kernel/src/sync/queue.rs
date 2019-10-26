@@ -60,7 +60,7 @@ const CAPACITY: usize = 30;
 const INITIAL_INDEX: usize = 0;
 const LIMIT: usize = CAPACITY - INITIAL_INDEX;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct SimpleQueue<T>
 where
     T: Copy,
