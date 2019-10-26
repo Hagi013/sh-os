@@ -72,7 +72,7 @@ impl MouseBuf {
                 self.x |= 0x7fffff00;
             }
             if (self.buf[0] & 0x20) != 0x00 {
-                self.x |= 0x7fffff00;
+                self.y |= 0x7fffff00;
             }
             /* マウスではy方向の符号が画面と反対 */
             self.y = -self.y;
