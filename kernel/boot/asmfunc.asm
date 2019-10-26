@@ -9,8 +9,8 @@ bits 32
 ;global load_cr0, store_cr0
 ;global load_tr
 ;global far_jmp
-global asm_inthandler21, asm_inthandler27, asm_inthandler2c
-extern inthandler21, inthandler27, inthandler2c
+global asm_inthandler20, asm_inthandler21, asm_inthandler27, asm_inthandler2c
+extern inthandler20, inthandler21, inthandler27, inthandler2c
 
 section .text
 
@@ -105,6 +105,22 @@ section .text
 ;farjmp:     ; farjmp(eip: u32, cs: u32)
 ;    jmp far [esp+4]     ; eip, cs. JMP FARはfar jmpさせるための命令。CPUは指定番地からまず4バイト読み込んんで、その値をEIPに入れる
 ;    ret                 ; さらにその隣の2バイトも読み込んでCSに入れる
+
+asm_inthandler20:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call inthandler20
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
 
 asm_inthandler21:
     push es

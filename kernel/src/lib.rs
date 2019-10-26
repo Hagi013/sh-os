@@ -17,7 +17,6 @@ use core::alloc::Layout;
 #[macro_use]
 use core::fmt::{ Write, Display };
 
-
 #[macro_use]
 extern crate alloc;
 
@@ -38,6 +37,8 @@ use self::arch::dsctbl::DscTbl;
 use self::arch::pic;
 use self::arch::keyboard;
 use self::arch::mouse;
+use self::arch::timer::{ timer_init, get_uptime };
+//use self::arch::timer;
 
 pub mod window;
 use window::{ Window, WindowsManager };
@@ -59,8 +60,17 @@ use spin::mutex::MutexGuard;
 
 #[allow(unused_imports)]
 pub mod util;
+use util::lazy_static;
+#[macro_use]
+use util::lazy_static::*;
 
 use alloc::collections::vec_deque::VecDeque;
+use core::borrow::Borrow;
+
+//lazy_static! {
+//    static ref EXAMPLE: i32 = 1000;/
+//    static ref EXAMPLE2: i32 = 2000;
+//}
 
 fn init_heap() {
 //    let heap_start: usize = 0x00400000;
@@ -77,7 +87,8 @@ fn init_heap() {
 #[cfg(not(test))]
 #[start]
 #[no_mangle]
-pub extern fn init_os() {
+pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
+//pub extern fn init_os() {
 
     Graphic::init();
     Graphic::putfont_asc(210, 150, 10, "rio-os");
@@ -94,22 +105,10 @@ pub extern fn init_os() {
     let a: String = "String Alloc!!".to_string();
     Graphic::putfont_asc(210, 180, 10, &a);
 
-//    let mut v: VecDeque<u32> = VecDeque::new();
-//    v.push_front(1);
-//    v.push_front(2);
-//    v.push_back(3);
-//    for i in 0..v.len() {
-//        let mut printer = Printer::new((210 + i * 10) as u32, (480 + i * 10) as u32, 10);
-//        write!(printer, "{:?}", v.pop_front().unwrap()).unwrap();
-//    }
-
-//    let b: String = "String Alloc!!2222".to_string();
-//    Graphic::putfont_asc(210, 200, 10, &b);
-
+    timer_init();
     keyboard::allow_pic1_keyboard_int();
     mouse::allow_mouse_int();
     let mut window_manager: WindowsManager = WindowsManager::new();
-
     let mut mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
 
     let mut idx: u32 = 10;
@@ -135,25 +134,17 @@ pub extern fn init_os() {
                     asmfunc::io_sti();
                     match data {
                         Some(status) => {
-                            // Graphic::putfont_asc(200, 200, 10, "mouse data is existing.");
-                            let mut printer = Printer::new(200, 215, 10);
-                            write!(printer, "{:?}", status.2).unwrap();
-                            // Graphic::putfont_asc(status.1 as u32, 300, 10, "X");
-                            // Graphic::putfont_asc(101, status.2 as u32, 10, "Y");
                             let x: i32 = status.1;
                             let y: i32 = status.2;
-//                            let mut printer = Printer::new(500, 100, 10);
-//                            write!(printer, "{:?}", status.1).unwrap();
-
-//                            let mut printer = Printer::new(500, 115, 10);
-//                            write!(printer, "{:?}", -1).unwrap();
-
-                            mouse_window = window_manager.move_window(mouse_window, x, y).unwrap_or(mouse_window);
-
+                            mouse_window = match window_manager.move_window(&mut mouse_window, x, y) {
+                                Ok(m_w) => m_w,
+                                Err(message) => {
+                                    Graphic::putfont_asc(200, 200, 10, &message);
+                                    mouse_window
+                                }
+                            }
                         },
-                        None => {
-                            // Graphic::putfont_asc(200, 200, 10, "mouse data is not existing kita.")
-                        },
+                        None => {},
                     }
                 },
                 Err(message) => {

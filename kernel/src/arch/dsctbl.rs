@@ -3,6 +3,7 @@ use super::pic;
 use super::graphic::Graphic;
 
 extern "C" {
+    pub fn asm_inthandler20();
     pub fn asm_inthandler21();
     pub fn asm_inthandler27();
     pub fn asm_inthandler2c();
@@ -98,6 +99,7 @@ impl DscTbl {
 
         asmfunc::load_idtr(LIMIT_IDT as u32, ADR_IDT);
 
+        gate_descriptor_table[0x20] = DscTbl::set_fn_gatedesc(0x20 as u32, asm_inthandler20, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x21] = DscTbl::set_fn_gatedesc(0x21 as u32, asm_inthandler21, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x27] = DscTbl::set_fn_gatedesc(0x27 as u32, asm_inthandler27, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x2c] = DscTbl::set_fn_gatedesc(0x2c as u32, asm_inthandler2c, 2 * 8, AR_INTGATE32);
