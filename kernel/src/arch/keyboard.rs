@@ -23,11 +23,11 @@ static mut KEYBOARD_QUEUE: Option<SimpleQueue<i32>> = None;
 
 /* PIC1とキーボードを許可(11111001) */
 pub fn allow_pic1_keyboard_int() {
-    asmfunc::io_out8(PIC0_IMR, 0xf9);
     wait_kbc_sendready();
     asmfunc::io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
     wait_kbc_sendready();
     asmfunc::io_out8(PORT_KEYDAT, KBC_MODE);
+    asmfunc::io_out8(PIC0_IMR, 0xf8);
     unsafe {
         let queue: SimpleQueue<i32> = SimpleQueue::new();
         KEYBOARD_QUEUE = Some(queue);
