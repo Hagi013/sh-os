@@ -6,11 +6,15 @@ use core::mem::replace;
 use super::arch::boot_info::BootInfo;
 
 use super::Printer;
+use core::fmt;
 use core::fmt::Write;
 
 use super::util::linked_list::LinkedList;
 use core::borrow::Borrow;
 use alloc::borrow::ToOwned;
+
+use super::get_uptime;
+
 
 /* ToDo
     0. windowを受け取った時のrendering
@@ -33,16 +37,27 @@ pub struct WindowsManager {
 
 impl WindowsManager {
     pub fn new() -> Self {
-        let b: BootInfo = BootInfo::new();
+        let mut b: BootInfo = BootInfo::new();
         let mut window_size: usize = 0;
         window_size = (b.scrnx as usize) * (b.scrny as usize) + (b.scrnx as usize);
+        let mut base_window = Window::new(0, 0, b.scrnx, b.scrny, &mut b.vram as *mut u32 as *mut u8);
+        let mut linked_list: LinkedList<Window> = LinkedList::new();
+        linked_list.add(base_window);
+        let mut windows_map: Vec<*const u8> = vec![&mut base_window as *mut Window as *const u8; window_size];
         WindowsManager {
-            linked_list: LinkedList::new(),
-            windows_map: vec![0 as *const u8; window_size],
+            linked_list,
+            windows_map,
             scrnx: b.scrnx,
             scrny: b.scrny,
             vram: b.vram,
         }
+//        WindowsManager {
+//            linked_list: LinkedList::new(),
+//            windows_map: vec![0 as *const u8; window_size],
+//            scrnx: b.scrnx,
+//            scrny: b.scrny,
+//            vram: b.vram,
+//        }
     }
 
     pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Result<Window, String> {
@@ -88,15 +103,22 @@ impl WindowsManager {
             let current_window_ptr: *const Window = &mut self.linked_list.get_data_from_position(h).ok_or("get_data_from_position is error in refresh_windows")? as *const Window;
             for y in from_y..to_y {
                 for x in from_x..to_x {
-                    let mut address = ((self.vram) + (y as u32) * (self.scrnx as u32) + (x as u32)) as *mut u8;
                     unsafe {
-                        *address = *(*current_window_ptr).buf.offset(((y - from_y) * self.scrnx + (x - from_x)) as isize);
-//                        let mut printer = Printer::new(500, 560, 10);
-//                        write!(printer, "{:?}", (*current_window_ptr).buf.offset(((y - from_y) * self.scrnx + (x - from_x)) as isize)).unwrap();
-                        let mut printer = Printer::new(x as u32, y as u32, 10);
-                        write!(printer, "{:?}", 1).unwrap();
+                        let w: Window = *(self.windows_map[(y as usize) * (self.scrnx as usize) + (x as usize)] as *mut Window);
+                        let target_w: &Window = &*(current_window_ptr as *mut Window);
+
+                        let mut printer = Printer::new(500, 250, 10);
+                        write!(printer, "{:?}", w.equal(&*(current_window_ptr as *mut Window))).unwrap();
+                        let mut printer = Printer::new(500, 265, 10);
+                        write!(printer, "{:?}", w.id).unwrap();
+                        let mut printer = Printer::new(500, 280, 10);
+                        write!(printer, "{:?}", target_w.id).unwrap();
+
+                        if w.equal(target_w) {
+                            let mut address = ((self.vram) + (y as u32) * (self.scrnx as u32) + (x as u32)) as *mut u8;
+                            *address = *(*current_window_ptr).buf.offset(((y - from_y) * self.scrnx + (x - from_x)) as isize);
+                        }
                     }
-//                    }
                 }
             }
         }
@@ -110,12 +132,6 @@ impl WindowsManager {
         //      一旦画面の大きさ的にx軸とy軸とで16bitの最大値を超えることはないため、こうする
         let x: i32 = 0x0000 + (value_x as i16) as i32;
         let y: i32 = 0x0000 + (value_y as i16) as i32;
-
-        let mut printer = Printer::new(w.base_x as u32, w.base_y as u32, 10);
-        write!(printer, "{:?}", 1).unwrap();
-
-//        let mut printer = Printer::new(500, 265, 10);
-//        write!(printer, "{:?}", w.base_y).unwrap();
 
         let mut mx: i32 = w.base_x + x;
         mx = if mx < 0 {
@@ -142,6 +158,7 @@ impl WindowsManager {
         w.set_base_y(my);
 
         let height = self.linked_list.get_position_from_data(w.to_owned()).ok_or("In move_window, window is not existing.".to_string())?;
+
         self.refresh_map(old_base_x, old_base_y, w, 0);
         self.refresh_map(mx, my, w, height);
 
@@ -163,10 +180,11 @@ impl WindowsManager {
 }
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct Window {
+    pub id: usize,
     pub base_x: i32,
-    base_y: i32,
+    pub base_y: i32,
     xsize: u16,
     ysize: u16,
     buf: *mut u8,
@@ -175,6 +193,7 @@ pub struct Window {
 impl Window {
     pub fn new(base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Window {
         Window {
+            id: get_uptime(),
             base_x,
             base_y,
             xsize,
@@ -190,25 +209,27 @@ impl Window {
     fn set_base_y(&mut self, y: i32) {
         self.base_y = y;
     }
+
+    fn equal(&self, other: &Window) -> bool {
+        self.id == other.id
+    }
 }
 
 impl core::cmp::PartialEq<Window> for Window {
+    // ToDo ここの条件はしっかり考える
     #[inline]
     fn eq(&self, other: &Window) -> bool {
-        self.base_x == other.base_x &&
-        self.base_y == other.base_y &&
-        self.xsize == other.xsize &&
-        self.ysize == other.ysize &&
-        self.buf == other.buf
+        self.id == other.id
     }
 
     #[inline]
     fn ne(&self, other: &Window) -> bool {
-        self.base_x != other.base_x ||
-        self.base_y != other.base_y ||
-        self.xsize != other.xsize ||
-        self.ysize != other.ysize ||
-        self.buf != other.buf
+        self.id != other.id
     }
+}
 
+impl fmt::Debug for Window {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "base_x: {:?}, base_y: {:?}, xsize: {:?}, ysize: {:?} buf: {:?}", self.base_x, self.base_y, self.xsize, self.ysize, self.buf as *const u8)
+    }
 }
