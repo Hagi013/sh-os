@@ -3,7 +3,7 @@ use alloc::boxed;
 use core::mem::replace;
 use core::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 struct LinkedListNode<T>
     where
         T: Copy,
@@ -58,6 +58,26 @@ impl<T> LinkedList<T>
 
     pub fn len(&self) -> usize {
         self.count
+    }
+
+    pub fn push_front(&mut self, data: T) -> Result<(), String> {
+        unsafe {
+            let node: *mut LinkedListNode<T> = boxed::Box::into_raw(boxed::Box::new(LinkedListNode::new(data)));
+            if self.len() == 0 {
+                self.head = Some(node);
+                self.tail = Some(node);
+                (*node).prev = None;
+                (*node).next = None;
+            } else {
+                let head = self.head.ok_or("LinkedList's head is none.".to_string())?;
+                self.head = Some(node);
+                (*head).prev = Some(node);
+                (*node).next = Some(head);
+                (*node).prev = None;
+            }
+            self.count += 1;
+            return Ok(());
+        }
     }
 
     // addするときは一番最後に入れる
