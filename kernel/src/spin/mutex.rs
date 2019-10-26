@@ -1,6 +1,6 @@
 #![feature(const_fn)]
 
-use core::sync::atomic::{ AtomicBool, Ordering, ATOMIC_BOOL_INIT, spin_loop_hint as cpu_relax };
+use core::sync::atomic::{ AtomicBool, Ordering, spin_loop_hint as cpu_relax };
 use core::cell::UnsafeCell;
 use core::marker::Sync;
 use core::ops::{ Drop, Deref, DerefMut };
@@ -31,7 +31,8 @@ impl<T> Mutex<T> {
 //    #[cfg(feature = "const_fn")]
     pub const fn new(user_data: T) -> Mutex<T> {
         Mutex {
-            lock: ATOMIC_BOOL_INIT,
+//            lock: ATOMIC_BOOL_INIT,
+            lock: AtomicBool::new(false),
             data: UnsafeCell::new(user_data),
         }
     }
