@@ -1,5 +1,6 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use alloc::boxed;
 
 use core::mem::replace;
 
@@ -11,6 +12,7 @@ use core::fmt::Write;
 
 use super::util::linked_list::LinkedList;
 use core::borrow::Borrow;
+use core::ptr;
 use alloc::borrow::ToOwned;
 
 use super::get_uptime;
@@ -40,7 +42,15 @@ impl WindowsManager {
         let mut b: BootInfo = BootInfo::new();
         let mut window_size: usize = 0;
         window_size = (b.scrnx as usize) * (b.scrny as usize) + (b.scrnx as usize);
-        let mut base_window = Window::new(0, 0, b.scrnx, b.scrny, &mut b.vram as *mut u32 as *mut u8);
+
+        let mut initial_buf: Vec<u8> = Vec::new();
+        for i in 0..(b.scrnx as usize) * (b.scrny as usize) {
+            let address = (b.vram + i as u32) as *mut u8;
+            initial_buf.push(unsafe { *address });
+        }
+        let buf = (boxed::Box::into_raw(initial_buf.into_boxed_slice())) as *mut u8;
+        let mut base_window: Window = Window::new(0, 0, b.scrnx, b.scrny, buf);
+        base_window.id = 1;
         let mut linked_list: LinkedList<Window> = LinkedList::new();
         linked_list.add(base_window);
         let mut windows_map: Vec<*const u8> = vec![&mut base_window as *mut Window as *const u8; window_size];
@@ -51,13 +61,6 @@ impl WindowsManager {
             scrny: b.scrny,
             vram: b.vram,
         }
-//        WindowsManager {
-//            linked_list: LinkedList::new(),
-//            windows_map: vec![0 as *const u8; window_size],
-//            scrnx: b.scrnx,
-//            scrny: b.scrny,
-//            vram: b.vram,
-//        }
     }
 
     pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Result<Window, String> {
@@ -98,23 +101,22 @@ impl WindowsManager {
         let (from_x, from_y, to_x, to_y) = self.get_adjusted_position(base_x, base_y, w.xsize, w.ysize);
         let linked_list_len: usize = self.linked_list.get_position_from_data(w.to_owned()).ok_or("this window is not existing in LinkedList.".to_string())?;
         let height: usize = if to_height > linked_list_len { linked_list_len } else { to_height + 1 };
-        let mut c = 0;
         for h in from_height..height {
             let current_window_ptr: *const Window = &mut self.linked_list.get_data_from_position(h).ok_or("get_data_from_position is error in refresh_windows")? as *const Window;
             for y in from_y..to_y {
                 for x in from_x..to_x {
                     unsafe {
-                        let w: Window = *(self.windows_map[(y as usize) * (self.scrnx as usize) + (x as usize)] as *mut Window);
+                        let win: Window = *(self.windows_map[(y as usize) * (self.scrnx as usize) + (x as usize)] as *mut Window);
                         let target_w: &Window = &*(current_window_ptr as *mut Window);
 
                         let mut printer = Printer::new(500, 250, 10);
                         write!(printer, "{:?}", w.equal(&*(current_window_ptr as *mut Window))).unwrap();
                         let mut printer = Printer::new(500, 265, 10);
-                        write!(printer, "{:?}", w.id).unwrap();
+                        write!(printer, "{:?}", win.id).unwrap();
                         let mut printer = Printer::new(500, 280, 10);
                         write!(printer, "{:?}", target_w.id).unwrap();
 
-                        if w.equal(target_w) {
+                        if win.equal(target_w) {
                             let mut address = ((self.vram) + (y as u32) * (self.scrnx as u32) + (x as u32)) as *mut u8;
                             *address = *(*current_window_ptr).buf.offset(((y - from_y) * self.scrnx + (x - from_x)) as isize);
                         }
@@ -126,6 +128,12 @@ impl WindowsManager {
     }
 
     pub fn move_window(&mut self, w: &mut Window, mut value_x: i32, value_y: i32) -> Result<Window, String> {
+        let mut printer = Printer::new(500, 445, 10);
+        write!(printer, "{:?}", unsafe { *(w.buf.offset(17)) }).unwrap();
+        let mut printer = Printer::new(450, 445, 10);
+        write!(printer, "{:?}", unsafe { &(w.buf.offset(17)) }).unwrap();
+
+
         // i32で保持されているデータだが、なぜかマイナスとして保持されておらず、16bit分だけ
         // コピーして、しっかりマナスとして判定させる
         // ToDo 今後根本となる原因を修正する必要はあるが(おそらくio_in8の返却がi32で返すところでおかしくなってる？)、
@@ -162,7 +170,8 @@ impl WindowsManager {
         self.refresh_map(old_base_x, old_base_y, w, 0);
         self.refresh_map(mx, my, w, height);
 
-        let to_height = if height == 0 { 0 } else { height };
+        let to_height = if height == 0 { 0 } else { height - 1 };
+
         self.refresh_windows(old_base_x, old_base_y, w, 0, to_height);
         self.refresh_windows(mx, my, w, height, height);
         return Ok(w.to_owned());
@@ -187,7 +196,7 @@ pub struct Window {
     pub base_y: i32,
     xsize: u16,
     ysize: u16,
-    buf: *mut u8,
+    pub buf: *mut u8,
 }
 
 impl Window {
@@ -204,6 +213,10 @@ impl Window {
 
     fn set_base_x(&mut self, x: i32) {
         self.base_x = x;
+    }
+
+    pub fn get_base_x(&self) -> i32 {
+        self.base_x
     }
 
     fn set_base_y(&mut self, y: i32) {
