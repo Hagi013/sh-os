@@ -2,6 +2,7 @@ use alloc::string::{String, ToString};
 use alloc::boxed;
 use core::mem::replace;
 use core::fmt::Debug;
+use alloc::borrow::ToOwned;
 
 #[derive(Copy, Clone, Debug)]
 struct LinkedListNode<T>
@@ -12,7 +13,7 @@ struct LinkedListNode<T>
 {
     prev: Option<*mut LinkedListNode<T>>,
     next: Option<*mut LinkedListNode<T>>,
-    data: T,
+    data: Option<T>,
 }
 
 impl<T> LinkedListNode<T>
@@ -25,7 +26,7 @@ impl<T> LinkedListNode<T>
         LinkedListNode {
             prev: None,
             next: None,
-            data,
+            data: Some(data),
         }
     }
 }
@@ -69,7 +70,7 @@ impl<T> LinkedList<T>
                 (*node).prev = None;
                 (*node).next = None;
             } else {
-                let head = self.head.ok_or("LinkedList's head is none.".to_string())?;
+                let head = self.head.ok_or("LinkedList's head is none.".to_owned())?;
                 self.head = Some(node);
                 (*head).prev = Some(node);
                 (*node).next = Some(head);
@@ -90,7 +91,7 @@ impl<T> LinkedList<T>
                 (*node).prev = None;
                 (*node).next = None;
             } else {
-                let tail = self.tail.ok_or("LinkedList's tail is none.".to_string())?;
+                let tail = self.tail.ok_or("LinkedList's tail is none.".to_owned())?;
                 self.tail = Some(node);
                 (*tail).next = Some(node);
                 (*node).prev = Some(tail);
@@ -103,11 +104,11 @@ impl<T> LinkedList<T>
 
     pub fn remove(&mut self, data: T) -> Result<(), String> {
         if self.len() == 0 {
-            return Err("LinkedList length is 0.".to_string());
+            return Err("LinkedList length is 0.".to_owned());
         }
 
         if self.get_position_from_data(data).is_none() {
-            return Err("Data is not existing.".to_string());
+            return Err("Data is not existing.".to_owned());
         }
 
         self.count -= 1;
@@ -119,7 +120,7 @@ impl<T> LinkedList<T>
         }
 
         unsafe {
-            let pointer: *mut LinkedListNode<T> = self.get_pointer_from_data(data).ok_or("data is not existing in LinkedList.".to_string())?;
+            let pointer: *mut LinkedListNode<T> = self.get_pointer_from_data(data).ok_or("data is not existing in LinkedList.".to_owned())?;
 
             if self.head.is_some() && self.tail.is_some() { // 基本的に要素が存在する場合は、headとtailは存在するはず
                 let head: *mut LinkedListNode<T> = self.head.unwrap();
@@ -146,14 +147,22 @@ impl<T> LinkedList<T>
                 }
                 return Ok(());
             } else {
-                return Err("Element in LinkedList is null.".to_string());
+                return Err("Element in LinkedList is null.".to_owned());
             }
         }
     }
 
+//    pub fn update(&mut self, data: T) -> Result<(), String> {
+//        let index = self.get_position_from_data(data).ok_or("Data is not existing in linked_list, when invoke get_position_from_data in update.".to_owned())?;
+//        let target_node = self.get_pointer_from_index(index).ok_or("Data is not existing in linked_list, when invoke get_pointer_from_index in update.")?;
+////        unsafe { (*target_node).data = Some(data); }
+//        unsafe { replace(&mut (*target_node).data, Some(data)); }
+//        Ok(())
+//    }
+
     pub fn change_order(&mut self, data: T, idx: usize) -> Result<(), String> {
-        let src_node_ptr: *mut LinkedListNode<T> = self.get_pointer_from_data(data).ok_or("data is not existing in LinkedList".to_string())?;
-        let position = self.get_position_from_data(data).ok_or("In chane_order, data's position is not found.".to_string())?;
+        let src_node_ptr: *mut LinkedListNode<T> = self.get_pointer_from_data(data).ok_or("data is not existing in LinkedList".to_owned())?;
+        let position = self.get_position_from_data(data).ok_or("In chane_order, data's position is not found.".to_owned())?;
         // println!("{:?}", unsafe { (&mut *src_node_ptr) });
         let order: usize =
             if idx >= self.len() { self.len() - 1 }
@@ -185,7 +194,7 @@ impl<T> LinkedList<T>
                 if position == 0 { // ポジションを変更したいNodeの元の位置がheadだった場合
                     self.head = (*src_node_ptr).next;
                 }
-                let tail_node_ptr: *mut LinkedListNode<T> = self.tail.ok_or("LinkedList is broken.".to_string())?;
+                let tail_node_ptr: *mut LinkedListNode<T> = self.tail.ok_or("LinkedList is broken.".to_owned())?;
                 (*tail_node_ptr).next = Some(src_node_ptr);
                 (*src_node_ptr).prev = Some(tail_node_ptr);
                 (*src_node_ptr).next = None;
@@ -195,9 +204,9 @@ impl<T> LinkedList<T>
                 // 挿入したい場所における入れ替え操作
                 // 1. 入れ替えたい先のNodeとその前の順番のNodeを取得
                 let dest_order_node_ptr: *mut LinkedListNode<T> = self.get_pointer_from_index(order)
-                    .ok_or("idx argument to change_order may be out of bound.".to_string())?;
+                    .ok_or("idx argument to change_order may be out of bound.".to_owned())?;
                 let dest_order_prev_node_ptr = (*dest_order_node_ptr).prev
-                    .ok_or("change_order target order node's state is broken in LinkedList.".to_string())?;
+                    .ok_or("change_order target order node's state is broken in LinkedList.".to_owned())?;
 
                 // 2. 入れ替えたいNodeの紐付けを行う
                 (*dest_order_node_ptr).prev = Some(src_node_ptr);
@@ -224,7 +233,7 @@ impl<T> LinkedList<T>
         let mut node: *mut LinkedListNode<T> = self.head.or(None)?;
         loop {
             unsafe {
-                if data == (*node).data {
+                if data == (*node).data.unwrap() {
                     return Some(idx);
                 }
                 if let Some(next) = (*node).next {
@@ -238,12 +247,12 @@ impl<T> LinkedList<T>
         return None;
     }
 
-    pub fn get_data_from_position(&self, idx: usize) -> Option<T> {
+    pub fn get_data_from_position(&self, idx: usize) -> Option<&T> {
         if idx >= self.count {
             return None;
         }
         let data_ptr: *mut LinkedListNode<T> = self.get_pointer_from_index(idx).or(None)?;
-        return unsafe { Some((*data_ptr).data) };
+        return unsafe { (*data_ptr).data.as_ref() };
     }
 
     pub fn get_next_data(&self, data: T) -> Option<T> {
@@ -253,7 +262,7 @@ impl<T> LinkedList<T>
                     return None;
                 }
                 let next_data_ptr: *mut LinkedListNode<T> = self.get_pointer_from_index(idx + 1).or(None)?;
-                return unsafe { Some((*next_data_ptr).data) };
+                return unsafe { (*next_data_ptr).data };
             },
             None => None,
         }
@@ -264,7 +273,7 @@ impl<T> LinkedList<T>
             Some(idx) => {
                 if idx <= 0 { return None; }
                 let prev_data_ptr: *mut LinkedListNode<T> = self.get_pointer_from_index(idx - 1).or(None)?;
-                return unsafe { Some((*prev_data_ptr).data) };
+                return unsafe { (*prev_data_ptr).data };
             },
             None => None,
         }
@@ -275,7 +284,7 @@ impl<T> LinkedList<T>
         let mut node: *mut LinkedListNode<T>  = self.head.or(None)?;
         loop {
             unsafe {
-                if data == (*node).data {
+                if data == (*node).data.unwrap() {
                     return Some(node);
                 }
                 if let Some(next) = (*node).next {
