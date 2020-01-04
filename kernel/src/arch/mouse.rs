@@ -9,18 +9,20 @@ use super::pic::PIC1_OCW2;
 use super::pic::PORT_KEYDAT;
 use super::pic::KEYCMD_SENDTO_MOUSE;
 use super::pic::MOUSECMD_ENABLE;
-
 use super::pic::wait_kbc_sendready;
-
 use super::super::queue::SimpleQueue;
+use super::super::spin::mutex::Mutex;
+use super::super::lazy_static;
 
 use super::graphic::Graphic;
 use super::graphic::Printer;
 use core::fmt::Write;
 use crate::arch::pic::PORT_KEYCMD;
+use core::borrow::Borrow;
 
 static mut MOUSE_QUEUE: Option<SimpleQueue<i32>> = None;
 static mut MOUSE_BUF: Option<MouseBuf> = None;
+static mut INIT_FLAG: Option<bool> = Some(false);
 
 #[derive(Copy, Clone)]
 struct MouseBuf {
@@ -104,17 +106,23 @@ pub fn allow_mouse_int() {
 pub extern "C" fn inthandler2c(esp: *const usize) {
     asmfunc::io_out8(PIC1_OCW2, 0x64);
     asmfunc::io_out8(PIC0_OCW2, 0x62);
-    let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
     unsafe {
-        match ptr::read_volatile(&MOUSE_QUEUE) {
-            Some(mut queue) => {
-                queue.enqueue(data);
-                MOUSE_QUEUE = Some(queue);
-            },
-            None => {
-                let mut queue: SimpleQueue<i32> = SimpleQueue::new();
-                queue.enqueue(data);
-                MOUSE_QUEUE = Some(queue);
+        // 初回に謎の250という値が飛んでくるので無視する
+        if !INIT_FLAG.unwrap() {
+            INIT_FLAG = Some(true);
+            return;
+        } else {
+            let data: i32 = asmfunc::io_in8(PORT_KEYDAT);
+            match ptr::read_volatile(&MOUSE_QUEUE) {
+                Some(mut queue) => {
+                    queue.enqueue(data);
+                    MOUSE_QUEUE = Some(queue);
+                },
+                None => {
+                    let mut queue: SimpleQueue<i32> = SimpleQueue::new();
+                    queue.enqueue(data);
+                    MOUSE_QUEUE = Some(queue);
+                }
             }
         }
     }
