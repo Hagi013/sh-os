@@ -73,10 +73,10 @@ use core::borrow::Borrow;
 //}
 
 fn init_heap() {
-//    let heap_start: usize = 0x00400000;
+    let heap_start: usize = 0x00400000;
 //    let heap_end: usize = 0xbfffffff;
-    let heap_start: usize = 0x00800000;
-     let heap_end: usize = 0x00f00000;
+//    let heap_start: usize = 0x00800000;
+     let heap_end: usize = 0x01ff0000;
 
     let heap_size: usize = heap_end - heap_start;
     let mut printer = Printer::new(0, 80, 10);
