@@ -4,15 +4,13 @@ use core::ops::Deref;
 use core::ptr::NonNull;
 use core::alloc::{ Alloc, AllocErr, Layout, GlobalAlloc };
 
-//use super::Graphic;
-//use super::Printer;
-//use core::fmt::Write;
-
 use super::spin::mutex::Mutex;
 
 pub mod slab;
 
 use self::slab::Slab;
+
+pub mod linked_list_allocator;
 
 pub const NUM_OF_SLABS: usize = 8;
 pub const MIN_SLAB_SIZE: usize = 4096;
@@ -28,6 +26,7 @@ pub enum HeapAllocator {
     Slab1024Bytes,
     Slab2048Bytes,
     Slab4096Bytes,
+    LinkedListAllocator,
 }
 
 pub struct Heap {
@@ -38,6 +37,7 @@ pub struct Heap {
     slab_1024_bytes: Slab,
     slab_2048_bytes: Slab,
     slab_4096_bytes: Slab,
+    linked_list_allocator: linked_list_allocator::Heap,
 }
 
 impl Heap {
@@ -63,6 +63,7 @@ impl Heap {
             slab_1024_bytes: Slab::new(heap_start_addr + 4 * slab_size, slab_size, 1024),
             slab_2048_bytes: Slab::new(heap_start_addr + 5 * slab_size, slab_size, 2048),
             slab_4096_bytes: Slab::new(heap_start_addr + 6 * slab_size, slab_size, 4096),
+            linked_list_allocator: linked_list_allocator::Heap::new(heap_start_addr + 7 * slab_size, slab_size),
         }
     }
 
@@ -75,6 +76,7 @@ impl Heap {
             HeapAllocator::Slab1024Bytes => self.slab_1024_bytes.grow(mem_start_addr, mem_size),
             HeapAllocator::Slab2048Bytes => self.slab_2048_bytes.grow(mem_start_addr, mem_size),
             HeapAllocator::Slab4096Bytes => self.slab_4096_bytes.grow(mem_start_addr, mem_size),
+            HeapAllocator::LinkedListAllocator => self.linked_list_allocator.extend(mem_size),
         }
     }
 
@@ -87,6 +89,7 @@ impl Heap {
             HeapAllocator::Slab1024Bytes => self.slab_1024_bytes.allocate(layout),
             HeapAllocator::Slab2048Bytes => self.slab_2048_bytes.allocate(layout),
             HeapAllocator::Slab4096Bytes => self.slab_4096_bytes.allocate(layout),
+            HeapAllocator::LinkedListAllocator => self.linked_list_allocator.allocate_first_fit(layout),
         }
     }
 
@@ -99,6 +102,7 @@ impl Heap {
             HeapAllocator::Slab1024Bytes => self.slab_1024_bytes.deallocate(ptr),
             HeapAllocator::Slab2048Bytes => self.slab_2048_bytes.deallocate(ptr),
             HeapAllocator::Slab4096Bytes => self.slab_4096_bytes.deallocate(ptr),
+            HeapAllocator::LinkedListAllocator => self.linked_list_allocator.deallocate(ptr, layout),
         }
     }
 
@@ -111,12 +115,13 @@ impl Heap {
             HeapAllocator::Slab1024Bytes => (layout.size(), 1024),
             HeapAllocator::Slab2048Bytes => (layout.size(), 2048),
             HeapAllocator::Slab4096Bytes => (layout.size(), 4096),
+            HeapAllocator::LinkedListAllocator => (layout.size(), layout.size()),
         }
     }
 
     pub fn layout_to_allocator(layout: &Layout) -> HeapAllocator {
         if layout.size() > 4096 {
-            HeapAllocator::Slab4096Bytes
+            HeapAllocator::LinkedListAllocator
         } else if layout.size() <= 64 && layout.align() <= 64 {
             HeapAllocator::Slab64Bytes
         } else if layout.size() <= 128 && layout.align() <= 128 {
