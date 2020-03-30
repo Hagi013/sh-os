@@ -57,8 +57,6 @@ pub extern "C" fn inthandler21(esp: *const u32) {
 }
 
 pub fn is_existing() -> bool {
-//    let mut printer = Printer::new(310, 400, 10);
-//    write!(printer, "{:?}", unsafe { &KEYBOARD_QUEUE as *const _ }).unwrap();
     unsafe {
         // ここはread_volatileにしないとなぜか副作用をこの処理ないで記述しないと実行されない
         // 参考: https://doc.rust-lang.org/std/ptr/fn.read_volatile.html
@@ -72,6 +70,7 @@ pub fn is_existing() -> bool {
 pub fn get_data() -> Result<i32, ()> {
     unsafe {
         if let Some(mut queue) = ptr::read(&KEYBOARD_QUEUE) {
+//        if let Some(mut queue) = ptr::read_volatile(&KEYBOARD_QUEUE) {
             let data: i32 = queue.dequeue().ok_or(())?;
             KEYBOARD_QUEUE = Some(queue);
             Ok(data)

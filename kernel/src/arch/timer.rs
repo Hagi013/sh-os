@@ -125,9 +125,7 @@ impl TimerCtrl {
         self.linked_list.push_front(timer);
     }
 
-    pub fn get_count(&self) -> u32 {
-        self.count
-    }
+    pub fn get_count(&self) -> u32 { self.count }
 
 }
 
@@ -150,5 +148,5 @@ pub extern "C" fn inthandler20(esp: *const usize) {
 }
 
 pub fn get_uptime() -> usize {
-    return *COUNTER.lock()
+    return *COUNTER.lock();
 }

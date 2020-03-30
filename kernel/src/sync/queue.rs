@@ -200,6 +200,12 @@ where
         return data;
     }
 
+    pub fn update(&mut self, data: T) -> Result<(), String> {
+        let index = self.get_position_in_queue(data).or(Err("Error in update queue.".to_string()))?;
+        self.queue[index] = data;
+        Ok(())
+    }
+
     pub fn remove_entry(&mut self, data: T) -> Result<(), String> {
         for idx in 0..self.len() {
             let i = self.get_index_in_queue(idx);

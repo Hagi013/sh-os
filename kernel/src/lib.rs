@@ -7,6 +7,7 @@
 #![feature(const_fn)]
 #![feature(allocator_api)]
 #![feature(alloc_error_handler)]
+#![feature(panic_info_message)]
 #![feature(alloc)]
 
 
@@ -67,16 +68,12 @@ use util::lazy_static::*;
 use alloc::collections::vec_deque::VecDeque;
 use core::borrow::Borrow;
 
-//lazy_static! {
-//    static ref EXAMPLE: i32 = 1000;/
-//    static ref EXAMPLE2: i32 = 2000;
-//}
-
 fn init_heap() {
     let heap_start: usize = 0x00400000;
 //    let heap_end: usize = 0xbfffffff;
 //    let heap_start: usize = 0x00800000;
-     let heap_end: usize = 0x01ff0000;
+//     let heap_end: usize = 0x01ff0000;
+    let heap_end: usize = 0x3fff0000;
 
     let heap_size: usize = heap_end - heap_start;
     let mut printer = Printer::new(0, 80, 10);
@@ -97,30 +94,46 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
     let dsc_tbl: DscTbl = DscTbl::init_gdt_idt();
     asmfunc::io_sti();
 
-    let mouse: MouseGraphic = MouseGraphic::new();
-    let mouse_state = mouse.init_mouse_cursor(14);
-
     init_heap();
 
-    let a: String = "String Alloc!!".to_string();
-    Graphic::putfont_asc(210, 180, 10, &a);
-
+    let mut window_manager: WindowsManager = WindowsManager::new();
     timer_init();
     keyboard::allow_pic1_keyboard_int();
     mouse::allow_mouse_int();
-    let mut window_manager: WindowsManager = WindowsManager::new();
+
+    let mouse: MouseGraphic = MouseGraphic::new();
+    let mouse_state = mouse.init_mouse_cursor(14);
+    let mut printer = Printer::new(120, 415, 10);
+    write!(printer, "{:?}", &mouse_state.0).unwrap();
+
     let mut mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
+
+    let mut printer = Printer::new(780, 600, 10);
+    write!(printer, "{:?}", get_uptime()).unwrap();
+
+    let mut printer = Printer::new(0, 400, 10);
+    write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
 
     let mut idx: u32 = 10;
     loop {
+        let mut printer = Printer::new(100, 400, 10);
+        write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
+
+        let mut printer = Printer::new(120, 400, 10);
+        write!(printer, "{:?}", &mouse_window as *const Window).unwrap();
+
         asmfunc::io_cli();
         if !keyboard::is_existing() && !mouse::is_existing() {
             asmfunc::io_stihlt();
             continue;
         }
         if keyboard::is_existing() {
+            let mut printer = Printer::new(100, 450, 10);
+            write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
             match keyboard::get_data() {
                 Ok(data) => {
+                    let mut printer = Printer::new(100, 465, 10);
+                    write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
                     asmfunc::io_sti();
                     Graphic::putfont_asc_from_keyboard(idx, 15, 10, data);
                 },
@@ -139,10 +152,12 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
                             mouse_window = match window_manager.move_window(&mut mouse_window, x, y) {
                                 Ok(m_w) => m_w,
                                 Err(message) => {
-                                    Graphic::putfont_asc(200, 200, 10, &message);
+                                    Graphic::putfont_asc(200, 200, 10, &message); //
                                     mouse_window
                                 }
-                            }
+                            };
+                            let mut printer = Printer::new(100, 500, 10); //
+                            write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
                         },
                         None => {},
                     }
@@ -152,9 +167,8 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
                     let mut printer = Printer::new(200, 215, 10);
                     write!(printer, "{:?}", message).unwrap();
                 },
-            }
+            };
         }
-
     }
 }
 
@@ -172,7 +186,10 @@ pub extern "C" fn panic(_info: &PanicInfo) -> ! {
     write!(printer, "{:?}", _info.location().unwrap().line()).unwrap();
     let mut printer = Printer::new(0, 160, 10);
     write!(printer, "{:?}", _info.location().unwrap().column()).unwrap();
-
+    let mut printer = Printer::new(0, 180, 10);
+    write!(printer, "{:?}", _info.message().unwrap()).unwrap();
+    let mut printer = Printer::new(0, 300, 10);
+    write!(printer, "{:?}", _info.payload().downcast_ref::<&str>()).unwrap();
     loop {
         asmfunc::io_hlt();
     }

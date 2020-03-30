@@ -152,13 +152,13 @@ impl<T> LinkedList<T>
         }
     }
 
-//    pub fn update(&mut self, data: T) -> Result<(), String> {
-//        let index = self.get_position_from_data(data).ok_or("Data is not existing in linked_list, when invoke get_position_from_data in update.".to_owned())?;
-//        let target_node = self.get_pointer_from_index(index).ok_or("Data is not existing in linked_list, when invoke get_pointer_from_index in update.")?;
-////        unsafe { (*target_node).data = Some(data); }
-//        unsafe { replace(&mut (*target_node).data, Some(data)); }
-//        Ok(())
-//    }
+    pub fn update(&mut self, data: T) -> Result<(), String> {
+        let index = self.get_position_from_data(data).ok_or("Data is not existing in linked_list, when invoke get_position_from_data in update.".to_owned())?;
+        let target_node = self.get_pointer_from_index(index).ok_or("Data is not existing in linked_list, when invoke get_pointer_from_index in update.")?;
+//        unsafe { (*target_node).data = Some(data); }
+        unsafe { replace(&mut (*target_node).data, Some(data)); }
+        Ok(())
+    }
 
     pub fn change_order(&mut self, data: T, idx: usize) -> Result<(), String> {
         let src_node_ptr: *mut LinkedListNode<T> = self.get_pointer_from_data(data).ok_or("data is not existing in LinkedList".to_owned())?;
