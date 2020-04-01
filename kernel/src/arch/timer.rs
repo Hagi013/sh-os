@@ -117,11 +117,11 @@ impl TimerCtrl {
         TimerCtrl::new(0xffffffff)
     }
 
-    pub fn init_add(&mut self, timer: Timer) {
+    pub fn init_add(&mut self, timer: *mut Timer) {
         self.linked_list.add(timer);
     }
 
-    pub fn add(&mut self, timer: Timer) {
+    pub fn add(&mut self, timer: *mut Timer) {
         self.linked_list.push_front(timer);
     }
 

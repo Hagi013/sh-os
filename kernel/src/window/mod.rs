@@ -30,7 +30,6 @@ use super::get_uptime;
 */
 pub struct WindowsManager {
     linked_list: LinkedList<Window>,
-//    windows_map: Vec<*const u8>,
     windows_map: Vec<usize>,
     scrnx: u16,
     scrny: u16,
@@ -54,7 +53,7 @@ impl WindowsManager {
         base_window.id = 0;
 
         let mut linked_list: LinkedList<Window> = LinkedList::new();
-        linked_list.add(base_window);
+        linked_list.add(boxed::Box::into_raw(boxed::Box::new(base_window)));
         let mut windows_map: Vec<usize> = vec![base_window.id; window_size];
         WindowsManager {
             linked_list,
@@ -65,42 +64,35 @@ impl WindowsManager {
         }
     }
 
-//    pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Result<Window, String> {
-//        let mut n_w = Window::new(base_x, base_y, xsize, ysize, buf);
-pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Result<Window, String> {
+pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16, buf: *mut u8) -> Result<*mut Window, String> {
     let mut n_w = Window::new(base_x, base_y, xsize, ysize, buf);
-        self.add(n_w);
-        let height=  self.linked_list.get_position_from_data(n_w).ok_or("add method is not executed properly in create_window".to_owned())?;
-
-        self.refresh_map(base_x, base_y, &mut n_w, height, 66);
-        return Ok(n_w);
+    let n_w_address = boxed::Box::into_raw(boxed::Box::new(n_w)) as *mut Window;
+    self.add(n_w_address);
+    let height=  self.linked_list.get_position_from_data(n_w_address).ok_or("add method is not executed properly in create_window".to_owned())?;
+    self.refresh_map(base_x, base_y, n_w_address, height, 66);
+    return Ok(n_w_address);
     }
 
 //    pub fn close_window(&mut self, buf: *mut u8) -> Result<(), String> {
 //    }
 
     // addするときは一番最後に入れる
-    fn add(&mut self, mut n_w: Window) -> Result<(), String> {
+    fn add(&mut self, n_w: *mut Window) -> Result<(), String> {
         return self.linked_list.add(n_w);
     }
 
-    pub fn remove(&mut self, mut t_w: Window) -> Result<(), String> {
+    pub fn remove(&mut self, t_w: *mut Window) -> Result<(), String> {
         return self.linked_list.remove(t_w);
     }
 
-    pub fn refresh_map(&mut self, base_x: i32, base_y: i32, w_r: &mut Window, height: usize, num: usize) -> Result<(), String> {
-//        let (w_from_x, w_from_y, w_to_x, w_to_y) = self.get_adjusted_position(base_x, base_y, w_r.xsize, w_r.ysize);
+    pub fn refresh_map(&mut self, base_x: i32, base_y: i32, w_pointer: *mut Window, height: usize, num: usize) -> Result<(), String> {
+        let w_r = unsafe { *w_pointer };
         let (mut from_x, mut from_y, mut to_x, mut to_y) = self.get_adjusted_position(base_x, base_y, w_r.xsize, w_r.ysize);
 
-        let mut c = 0;
-        let mut d = 0;
         for h in height..self.linked_list.len() {
-            let w = self.linked_list.get_data_from_position(h).ok_or("".to_owned()).clone()?;
+            let w_p = self.linked_list.get_data_from_position(h).ok_or("".to_owned()).clone()?;
+            let w = unsafe { *w_p };
 
-//            let win_from_x = if (from_x as isize) - (w.xsize as isize) < 0 { 0 } else { from_x - w.xsize };
-//            let win_from_y = if (from_y as isize) - (w.ysize as isize) < 0 { 0 } else { from_y - w.ysize };
-//            let win_to_x = unsafe { if to_x > self.scrnx as u16 { self.scrnx as u16 } else { to_x } };
-//            let win_to_y = unsafe { if to_y > self.scrny as u16 { self.scrny as u16 } else { to_y } };
             let win_from_x = if (from_x as isize) - (w.get_base_x() as isize) < 0 { 0 } else { (from_x as isize) - (w.get_base_x() as isize) };
             let win_from_y = if (from_y as isize) - (w.get_base_y() as isize) < 0 { 0 } else { (from_y as isize) - (w.get_base_y() as isize) };
             let win_to_x = unsafe {
@@ -117,69 +109,27 @@ pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16
                     (to_y as isize - w.get_base_y() as isize)
                 }
             };
-            let mut printer = Printer::new(500, 100, 10);
-            write!(printer, "{:?}", win_to_y).unwrap();
 
             for y in win_from_y..win_to_y {
-//            for y in from_y..to_y {
                 let vy = w.get_base_y() as usize + y as usize;
-//                let vy = y as usize;
                 for x in win_from_x..win_to_x {
-//                for x in from_x..to_x {
                     let vx = w.get_base_x() as usize + x as usize;
-//                    let vx = x as usize;
-                    if w.id != 0 {
-                        if c == 0 {
-                            let mut printer = Printer::new(900, 300, 10);
-                            write!(printer, "{:?}", "aaaaaaa").unwrap();
-                            let mut printer = Printer::new(900, 400, 10);
-                            write!(printer, "{:?}", w.id).unwrap();
-                            let mut printer = Printer::new(900, 415, 10);
-                            write!(printer, "{:?}", y).unwrap();
-                            let mut printer = Printer::new(900, 430, 10);
-                            write!(printer, "{:?}", x).unwrap();
-                            let mut printer = Printer::new(900, 445, 10);
-                            write!(printer, "{:?}", vy).unwrap();
-                            let mut printer = Printer::new(900, 460, 10);
-                            write!(printer, "{:?}", vx).unwrap();
-                            let mut printer = Printer::new(900, 490, 10);
-                            write!(printer, "{:?}", vy * (self.scrnx as usize) + vx).unwrap();
-                            let mut printer = Printer::new(900, 505, 10);
-                            write!(printer, "{:?}", &mut self.windows_map[vy * (self.scrnx as usize) + vx] as *mut usize).unwrap();
-                        }
-                        c += 1;
-                    }
-                    let old_id = self.windows_map[vy * (self.scrnx as usize) + vx].clone();
                     self.windows_map[vy * (self.scrnx as usize) + vx] = w.id;
-                    let new_id = self.windows_map[vy * (self.scrnx as usize) + vx];
-                    if old_id == 1 && new_id == 0 && d == 0 {
-                        let mut printer = Printer::new(900, 315, 10);
-                        write!(printer, "{:?}", &mut self.windows_map[vy * (self.scrnx as usize) + vx] as *mut usize).unwrap();
-                        let mut printer = Printer::new(900, 315 + num as u32, 10);
-                        write!(printer, "{:?}", num).unwrap();
-                        d += 1;
-                    }
                 }
             }
         }
         Ok(())
     }
 
-    pub fn refresh_windows(&mut self, base_x: i32, base_y: i32, w: &mut Window, from_height: usize, to_height: usize) -> Result<(), String> {
-        let (from_x, from_y, to_x, to_y) = self.get_adjusted_position(base_x, base_y, w.xsize, w.ysize);
-        let linked_list_len: usize = self.linked_list.get_position_from_data(w.to_owned()).ok_or("this window is not existing in LinkedList.".to_owned())?;
+    pub fn refresh_windows(&mut self, base_x: i32, base_y: i32, w_pointer: *mut Window, from_height: usize, to_height: usize) -> Result<(), String> {
+        let w = unsafe { *w_pointer };
+        let (from_x, from_y, to_x, to_y) = unsafe { self.get_adjusted_position(base_x, base_y, w.xsize, w.ysize) };
+        let linked_list_len: usize = self.linked_list.len();
 
-        let mut c = 0;
-        let mut d = 0;
-
-        let height: usize = if to_height > linked_list_len { linked_list_len } else { to_height + 1 };
-        for h in from_height..height {
-            let target_w = self.linked_list.get_data_from_position(h).ok_or("get_data_from_position is error in refresh_windows")?;
-
-//            let win_from_x = if (from_x as isize) - (target_w.xsize as isize) < 0 { 0 } else { from_x - target_w.xsize };
-//            let win_from_y = if (from_y as isize) - (target_w.ysize as isize) < 0 { 0 } else { from_y - target_w.ysize };
-//            let win_to_x = unsafe { if to_x > self.scrnx as u16 { self.scrnx as u16 } else { to_x } };
-//            let win_to_y = unsafe { if to_y > self.scrny as u16 { self.scrny as u16 } else { to_y } };
+        let height: usize = if to_height > linked_list_len { linked_list_len } else { to_height };
+        for h in from_height..(height + 1) {
+            let target_w_pointer = self.linked_list.get_data_from_position(h).ok_or("get_data_from_position is error in refresh_windows")?;
+            let target_w = unsafe { *target_w_pointer };
             let win_from_x = if (from_x as isize) - (target_w.get_base_x() as isize) < 0 { 0 } else { (from_x as isize) - (target_w.get_base_x() as isize) };
             let win_from_y = if (from_y as isize) - (target_w.get_base_y() as isize) < 0 { 0 } else { (from_y as isize) - (target_w.get_base_y() as isize) };
             let win_to_x = unsafe {
@@ -198,94 +148,14 @@ pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16
             };
 
             for y in win_from_y..win_to_y {
-//            for y in from_y..to_y {
                 let vy = (target_w.get_base_y() as usize + y as usize);
-//                let vy = y as usize;
                 for x in win_from_x..win_to_x {
-//                for x in from_x..to_x {
                     let vx = (target_w.get_base_x() as usize + x as usize);
-//                    let vx = x as usize;
                     unsafe {
                         let win_id: usize = self.windows_map[vy * (self.scrnx as usize) + vx];
-
                         if target_w.id == win_id {
-//                            let mut address = ((self.vram) + (y as u32) * (self.scrnx as u32) + (x as u32)) as *mut u8;
-//                            *address = *target_w.buf.offset(((y - from_y) * target_w.xsize + (x - from_x)) as isize);
                             let mut address = ((self.vram) + (vy as u32) * (self.scrnx as u32) + (vx as u32)) as *mut u8;
                             *address = *target_w.buf.offset((y as isize) * (target_w.xsize as isize) + (x as isize));
-                            if w.id != 0 && h > 0 {
-                                if c == 132 {
-                                    let mut printer = Printer::new(700, 10, 10);
-                                    write!(printer, "{:?}", address).unwrap();
-                                    let mut printer = Printer::new(700, 25, 10);
-                                    write!(printer, "{:?}", *address).unwrap();
-                                    let mut printer = Printer::new(700, 40, 10);
-                                    write!(printer, "{:?}", y).unwrap();
-                                    let mut printer = Printer::new(700, 55, 10);
-                                    write!(printer, "{:?}", vy).unwrap();
-                                    let mut printer = Printer::new(700, 70, 10);
-                                    write!(printer, "{:?}", x).unwrap();
-                                    let mut printer = Printer::new(700, 85, 10);
-                                    write!(printer, "{:?}", vx).unwrap();
-                                    let mut printer = Printer::new(700, 100, 10);
-                                    write!(printer, "{:?}", target_w.get_base_y()).unwrap();
-
-                                    let mut printer = Printer::new(700, 130, 10);
-                                    write!(printer, "{:?}", self.linked_list.len()).unwrap();
-                                    let mut printer = Printer::new(700, 145, 10);
-                                    write!(printer, "{:?}", h).unwrap();
-                                    let mut printer = Printer::new(700, 160, 10);
-                                    write!(printer, "{:?}", target_w.id).unwrap();
-                                    let mut printer = Printer::new(700, 175, 10);
-                                    write!(printer, "{:?}", win_from_y).unwrap();
-                                    let mut printer = Printer::new(700, 190, 10);
-                                    write!(printer, "{:?}", win_to_y).unwrap();
-                                    let mut printer = Printer::new(700, 205, 10);
-                                    write!(printer, "{:?}", win_from_x).unwrap();
-                                    let mut printer = Printer::new(700, 220, 10);
-                                    write!(printer, "{:?}", win_to_x).unwrap();
-
-                                    let mut printer = Printer::new(700, 315, 10);
-                                    write!(printer, "{:?}", &target_w.base_x as *const i32).unwrap();
-                                    let mut printer = Printer::new(700, 330, 10);
-                                    write!(printer, "{:?}", &target_w.buf as *const *mut u8).unwrap();
-
-                                    let mut printer = Printer::new(600, 10, 10);
-                                    write!(printer, "{:?}", &self.windows_map as *const Vec<usize>).unwrap();
-                                    let mut printer = Printer::new(600, 25, 10);
-                                    write!(printer, "{:?}", vy * (self.scrnx as usize) + vx).unwrap();
-                                    let mut printer = Printer::new(600, 40, 10);
-                                    write!(printer, "{:?}", self as *const WindowsManager).unwrap();
-                                    let mut printer = Printer::new(600, 55, 10);
-                                    write!(printer, "{:?}", &self.vram as *const u32).unwrap();
-                                    let mut printer = Printer::new(600, 70, 10);
-                                    write!(printer, "{:?}", &self.scrnx as *const u16).unwrap();
-                                }
-                                c += 1;
-                            }
-                            if w.id == 0 {
-                                if d == 0 {
-                                    let mut printer = Printer::new(600, 25, 10);
-                                    write!(printer, "{:?}", *address).unwrap();
-                                    let mut printer = Printer::new(600, 160, 10);
-                                    write!(printer, "{:?}", target_w.id).unwrap();
-                                    let mut printer = Printer::new(600, 175, 10);
-                                    write!(printer, "{:?}", win_from_y).unwrap();
-                                    let mut printer = Printer::new(600, 190, 10);
-                                    write!(printer, "{:?}", win_to_y).unwrap();
-                                    let mut printer = Printer::new(600, 205, 10);
-                                    write!(printer, "{:?}", win_from_x).unwrap();
-                                    let mut printer = Printer::new(600, 220, 10);
-                                    write!(printer, "{:?}", win_to_x).unwrap();
-
-
-                                    let mut printer = Printer::new(600, 315, 10);
-                                    write!(printer, "{:?}", &target_w.get_base_x() as *const i32).unwrap();
-                                    let mut printer = Printer::new(600, 330, 10);
-                                    write!(printer, "{:?}", &target_w.buf as *const *mut u8).unwrap();
-                                }
-                                d += 1;
-                            }
                         }
                     }
                 }
@@ -294,9 +164,9 @@ pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16
         return Ok(());
     }
 
-    pub fn move_window(&mut self, w: &mut Window, mut value_x: i32, value_y: i32) -> Result<Window, String> {
-        let old_base_x: i32 = w.base_x.clone();
-        let old_base_y: i32 = w.base_y.clone();
+    pub fn move_window(&mut self, w_pointer: *mut Window, mut value_x: i32, value_y: i32) -> Result<*mut Window, String> {
+        let old_base_x: i32 = unsafe { (*w_pointer).base_x.clone() };
+        let old_base_y: i32 = unsafe { (*w_pointer).base_y.clone() };
 
         // i32で保持されているデータだが、なぜかマイナスとして保持されておらず、16bit分だけ
         // コピーして、しっかりマナスとして判定させる
@@ -305,48 +175,35 @@ pub fn create_window(&mut self, base_x: i32, base_y: i32, xsize: u16, ysize: u16
         let x: i32 = 0x0000 + (value_x as i16) as i32;
         let y: i32 = 0x0000 + (value_y as i16) as i32;
 
-        let mut mx: i32 = w.base_x + x;
+        let mut mx: i32 = unsafe { (*w_pointer).base_x + x };
         mx = if mx < 0 {
             0
         } else if mx > unsafe { self.scrnx as i32 - 1 } {
             unsafe { self.scrnx as i32 - 1 }
         } else {
-            x + w.base_x
+            unsafe { x + (*w_pointer).base_x }
         };
 
-        let mut my: i32 = w.base_y + y;
+        let mut my: i32 = unsafe { (*w_pointer).base_y + y };
         my = if my < 0 {
             0
         } else if my > unsafe { self.scrny as i32 - 1 } {
             unsafe { self.scrny as i32 - 1 }
         } else {
-            y + w.base_y
+            unsafe { y + (*w_pointer).base_y }
         };
 
-        w.set_base_x(mx);
-        w.set_base_y(my);
-        let height = self.linked_list.get_position_from_data(w.clone()).ok_or("In move_window, window is not existing.".to_owned())?;
-        self.linked_list.update(w.clone()).or(Err("In move_window, window update failed.".to_owned()))?;
+        unsafe { (*w_pointer).set_base_x(mx) };
+        unsafe { (*w_pointer).set_base_y(my) };
+        let height = self.linked_list.get_position_from_data(w_pointer).ok_or("In move_window, window is not existing.".to_owned())?;
 
-        let mut printer = Printer::new(900, 200, 10);
-        write!(printer, "{:?}", height).unwrap();
-        let mut printer = Printer::new(900, 215, 10);
-        write!(printer, "{:?}", w.get_base_x()).unwrap();
-
-
-//        self.refresh_map(old_base_x, old_base_y, w, 0, 15);
-//        self.refresh_map(mx, my, w, height, 30);
-        self.refresh_map(old_base_x, old_base_y, w, 0, 15);
-        self.refresh_map(mx, my, w, height, 30);
+        self.refresh_map(old_base_x, old_base_y, w_pointer, 0, 15);
+        self.refresh_map(mx, my, w_pointer, height, 30);
 
         let to_height = if height == 0 { 0 } else { height - 1 };
-
-//        self.refresh_windows(old_base_x, old_base_y, w, 0, to_height);
-//        self.refresh_windows(mx, my, w, height, height);
-        self.refresh_windows(old_base_x, old_base_y, w, 0, to_height);
-        self.refresh_windows(mx, my, w, height, height);
-
-        return Ok(w.to_owned());
+        self.refresh_windows(old_base_x, old_base_y, w_pointer, 0, to_height);
+        self.refresh_windows(mx, my, w_pointer, height, height);
+        return Ok(w_pointer);
     }
 
     fn get_adjusted_position(&self, base_x: i32, base_y: i32, xsize: u16, ysize: u16) -> (u16, u16, u16, u16) {
@@ -396,7 +253,7 @@ impl Window {
     }
 
     fn get_base_y(&self) -> i32 {
-        self.base_x
+        self.base_y
     }
 
     fn equal(&self, other: &Window) -> bool {

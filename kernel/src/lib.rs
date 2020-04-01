@@ -70,7 +70,7 @@ use core::borrow::Borrow;
 
 fn init_heap() {
     let heap_start: usize = 0x00400000;
-//    let heap_end: usize = 0xbfffffff;
+//    let heap_end: usize = 0xbfffffff; 
 //    let heap_start: usize = 0x00800000;
 //     let heap_end: usize = 0x01ff0000;
     let heap_end: usize = 0x3fff0000;
@@ -103,37 +103,18 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
 
     let mouse: MouseGraphic = MouseGraphic::new();
     let mouse_state = mouse.init_mouse_cursor(14);
-    let mut printer = Printer::new(120, 415, 10);
-    write!(printer, "{:?}", &mouse_state.0).unwrap();
 
-    let mut mouse_window: Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
-
-    let mut printer = Printer::new(780, 600, 10);
-    write!(printer, "{:?}", get_uptime()).unwrap();
-
-    let mut printer = Printer::new(0, 400, 10);
-    write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
-
+    let mut mouse_window: *mut Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
     let mut idx: u32 = 10;
     loop {
-        let mut printer = Printer::new(100, 400, 10);
-        write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
-
-        let mut printer = Printer::new(120, 400, 10);
-        write!(printer, "{:?}", &mouse_window as *const Window).unwrap();
-
         asmfunc::io_cli();
         if !keyboard::is_existing() && !mouse::is_existing() {
             asmfunc::io_stihlt();
             continue;
         }
         if keyboard::is_existing() {
-            let mut printer = Printer::new(100, 450, 10);
-            write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
             match keyboard::get_data() {
                 Ok(data) => {
-                    let mut printer = Printer::new(100, 465, 10);
-                    write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
                     asmfunc::io_sti();
                     Graphic::putfont_asc_from_keyboard(idx, 15, 10, data);
                 },
@@ -149,15 +130,13 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
                         Some(status) => {
                             let x: i32 = status.1;
                             let y: i32 = status.2;
-                            mouse_window = match window_manager.move_window(&mut mouse_window, x, y) {
+                            mouse_window = match window_manager.move_window(mouse_window, x, y) {
                                 Ok(m_w) => m_w,
                                 Err(message) => {
-                                    Graphic::putfont_asc(200, 200, 10, &message); //
+                                    Graphic::putfont_asc(200, 200, 10, &message);
                                     mouse_window
                                 }
                             };
-                            let mut printer = Printer::new(100, 500, 10); //
-                            write!(printer, "{:?}", unsafe { *(mouse_window.buf.offset(17)) }).unwrap();
                         },
                         None => {},
                     }
