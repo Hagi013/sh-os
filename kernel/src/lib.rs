@@ -29,27 +29,26 @@ use alloc::string::ToString;
 #[cfg(all(not(test), target_arch = "x86"))]
 #[macro_use]
 pub mod arch;
-use self::arch::boot_info::BootInfo;
-use self::arch::graphic::Graphic;
-use self::arch::graphic::MouseGraphic;
-use self::arch::graphic::Printer;
-use self::arch::asmfunc;
-use self::arch::dsctbl::DscTbl;
-use self::arch::pic;
-use self::arch::keyboard;
-use self::arch::mouse;
-use self::arch::timer::{ timer_init, get_uptime };
-//use self::arch::timer;
+use arch::boot_info::BootInfo;
+use arch::graphic::Graphic;
+use arch::graphic::MouseGraphic;
+use arch::graphic::Printer;
+use arch::asmfunc;
+use arch::dsctbl::DscTbl;
+use arch::pic;
+use arch::keyboard;
+use arch::mouse;
+use arch::timer::{ timer_init, get_uptime };
 
 pub mod window;
 use window::{ Window, WindowsManager };
 
 pub mod sync;
-use self::sync::queue;
+use sync::queue;
 
 #[allow(unused_imports)]
 pub mod allocator;
-use self::allocator::LockedHeap;
+use allocator::LockedHeap;
 
 #[global_allocator]
 static ALLOCATOR: LockedHeap = LockedHeap;
@@ -70,7 +69,7 @@ use core::borrow::Borrow;
 
 fn init_heap() {
     let heap_start: usize = 0x00400000;
-//    let heap_end: usize = 0xbfffffff; 
+   // let heap_end: usize = 0xbfffffff;
 //    let heap_start: usize = 0x00800000;
 //     let heap_end: usize = 0x01ff0000;
     let heap_end: usize = 0x3fff0000;
