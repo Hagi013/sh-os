@@ -58,7 +58,7 @@ pub extern "C" fn inthandler21(esp: *const u32) {
 
 pub fn is_existing() -> bool {
     unsafe {
-        // ここはread_volatileにしないとなぜか副作用をこの処理ないで記述しないと実行されない
+        // ここはread_volatileにしないとなぜか副作用のある処理をこの中で記述しないと実行されない
         // 参考: https://doc.rust-lang.org/std/ptr/fn.read_volatile.html
         match ptr::read_volatile(&KEYBOARD_QUEUE) {
             Some(checker) => checker.is_existing(),
