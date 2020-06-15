@@ -40,7 +40,7 @@ $(BUILD_DIR)/secondboot.bin: kernel/boot
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
 
 qemu:
-	qemu-system-$(QEMU_ARCH_i686) -m 1024 -rtc base=localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio $(DEBUG)
+	qemu-system-$(QEMU_ARCH_i686) -m 4096 -rtc base=localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio $(DEBUG)
 
 clean:
 	rm -rf ./dist/*
