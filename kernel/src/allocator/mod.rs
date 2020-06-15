@@ -2,7 +2,7 @@
 
 use core::ops::Deref;
 use core::ptr::NonNull;
-use core::alloc::{ Alloc, AllocErr, Layout, GlobalAlloc };
+use core::alloc::{ AllocRef as Alloc, AllocErr, Layout, GlobalAlloc, AllocInit, MemoryBlock };
 
 use super::spin::mutex::Mutex;
 
@@ -80,7 +80,7 @@ impl Heap {
         }
     }
 
-    pub fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+    pub fn allocate(&mut self, layout: Layout) -> Result<MemoryBlock, AllocErr> {
         match Heap::layout_to_allocator(&layout) {
             HeapAllocator::Slab64Bytes => self.slab_64_bytes.allocate(layout),
             HeapAllocator::Slab128Bytes => self.slab_128_bytes.allocate(layout),
@@ -143,7 +143,7 @@ impl Heap {
 }
 
 unsafe impl Alloc for Heap {
-    unsafe fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+    fn alloc(&mut self, layout: Layout, init: AllocInit) -> Result<MemoryBlock, AllocErr> {
         self.allocate(layout)
     }
 
@@ -155,9 +155,9 @@ unsafe impl Alloc for Heap {
 //        panic!("Out of memory: {:?}", err);
 //    }
 
-    fn usable_size(&self, layout: &Layout) -> (usize, usize) {
-        self.usable_size(layout)
-    }
+    // fn usable_size(&self, layout: &Layout) -> (usize, usize) {
+    //     self.usable_size(layout)
+    // }
 }
 
 static HEAP: Mutex<Option<Heap>> = Mutex::new(None);
@@ -190,7 +190,7 @@ impl LockedHeap {
 //}
 
 unsafe impl<'a> Alloc for &'a LockedHeap {
-    unsafe fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+    fn alloc(&mut self, layout: Layout, init: AllocInit) -> Result<MemoryBlock, AllocErr> {
 //        if let Some(ref mut heap) = *self.0.lock() {
 //    unsafe fn alloc(&self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
         if let Some(ref mut heap) = *HEAP.lock() {
@@ -210,14 +210,14 @@ unsafe impl<'a> Alloc for &'a LockedHeap {
         }
     }
 
-    fn usable_size(&self, layout: &Layout) -> (usize, usize) {
-//        if let Some(ref mut heap) = *self.0.lock() {
-        if let Some(ref mut heap) = *HEAP.lock() {
-            heap.usable_size(layout)
-        } else {
-            panic!("usable_size: heap not initialized");
-        }
-    }
+//     fn usable_size(&self, layout: &Layout) -> (usize, usize) {
+// //        if let Some(ref mut heap) = *self.0.lock() {
+//         if let Some(ref mut heap) = *HEAP.lock() {
+//             heap.usable_size(layout)
+//         } else {
+//             panic!("usable_size: heap not initialized");
+//         }
+//     }
 }
 
 unsafe impl GlobalAlloc for LockedHeap {
@@ -225,7 +225,7 @@ unsafe impl GlobalAlloc for LockedHeap {
 //        if let Some(ref mut heap) = *self.0.lock() {
         if let Some(ref mut heap) = *HEAP.lock() {
             if let Ok(ref mut nnptr) = heap.allocate(layout) {
-                return nnptr.as_ptr();
+                return nnptr.ptr.as_ptr();
             } else {
                 panic!("allocate: failed");
             }

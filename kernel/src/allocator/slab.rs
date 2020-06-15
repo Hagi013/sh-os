@@ -1,4 +1,4 @@
-use core::alloc::{ AllocErr, Layout };
+use core::alloc::{ AllocErr, Layout, MemoryBlock };
 use core::ptr::NonNull;
 
 //use super::Graphic;
@@ -31,9 +31,14 @@ impl Slab {
         }
     }
 
-    pub fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+    pub fn allocate(&mut self, layout: Layout) -> Result<MemoryBlock, AllocErr> {
         match self.free_block_list.pop() {
-            Some(block) => Ok(unsafe { NonNull::new_unchecked(block.addr() as *mut u8 ) }),
+            Some(block) => Ok(unsafe {
+                MemoryBlock {
+                    ptr: NonNull::new_unchecked(block.addr() as *mut u8),
+                    size: layout.size()
+                }
+            }),
             None => Err(AllocErr),
         }
     }

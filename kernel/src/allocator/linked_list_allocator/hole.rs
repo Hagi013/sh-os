@@ -1,9 +1,9 @@
-use alloc::alloc::{AllocErr, Layout};
+use alloc::alloc::{AllocErr, Layout, MemoryBlock};
 use core::mem::size_of;
 use core::ptr::NonNull;
 
 use super::align_up;
-use core::alloc::Alloc;
+// use core::alloc::Alloc;
 
 /// A sorted list of holes. It uses the the holes itself to store its nodes.
 pub struct HoleList {
@@ -36,7 +36,7 @@ impl HoleList {
         }
     }
 
-    pub fn allocate_first_fit(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocErr> {
+    pub fn allocate_first_fit(&mut self, layout: Layout) -> Result<MemoryBlock, AllocErr> {
         assert!(layout.size() >= Self::min_size());
         allocate_first_fit(&mut self.first, layout).map(|allocation| {
             if let Some(padding) = allocation.front_padding {
@@ -45,7 +45,10 @@ impl HoleList {
             if let Some(padding) = allocation.back_padding {
                 deallocate(&mut self.first, padding.addr, padding.size);
             }
-            NonNull::new(allocation.info.addr as *mut u8).unwrap()
+            MemoryBlock {
+                ptr: NonNull::new(allocation.info.addr as *mut u8).unwrap(),
+                size: layout.size(),
+            }
         })
     }
 
