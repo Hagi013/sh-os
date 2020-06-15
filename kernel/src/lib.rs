@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
+#![feature(llvm_asm)]
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 #![feature(lang_items, start, asm, const_raw_ptr_deref)]
