@@ -3,6 +3,22 @@ use super::pic;
 use super::graphic::Graphic;
 
 extern "C" {
+    pub fn asm_inthandler02();
+    pub fn asm_inthandler04();
+    pub fn asm_inthandler05();
+    pub fn asm_inthandler06();
+    pub fn asm_inthandler07();
+    pub fn asm_inthandler08();
+    pub fn asm_inthandler0a();
+    pub fn asm_inthandler0b();
+    pub fn asm_inthandler0c();
+    pub fn asm_inthandler0d();
+    pub fn asm_inthandler0e();
+    pub fn asm_inthandler0f();
+    pub fn asm_inthandler10();
+    pub fn asm_inthandler11();
+    pub fn asm_inthandler12();
+    pub fn asm_inthandler13();
     pub fn asm_inthandler20();
     pub fn asm_inthandler21();
     pub fn asm_inthandler27();
@@ -99,6 +115,20 @@ impl DscTbl {
 
         asmfunc::load_idtr(LIMIT_IDT as u32, ADR_IDT);
 
+        gate_descriptor_table[0x04] = DscTbl::set_fn_gatedesc(0x04 as u32, asm_inthandler04, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x05] = DscTbl::set_fn_gatedesc(0x05 as u32, asm_inthandler05, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x06] = DscTbl::set_fn_gatedesc(0x06 as u32, asm_inthandler06, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x07] = DscTbl::set_fn_gatedesc(0x07 as u32, asm_inthandler07, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x08] = DscTbl::set_fn_gatedesc(0x08 as u32, asm_inthandler08, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x0a] = DscTbl::set_fn_gatedesc(0x0a as u32, asm_inthandler0a, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x0b] = DscTbl::set_fn_gatedesc(0x0b as u32, asm_inthandler0b, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x0c] = DscTbl::set_fn_gatedesc(0x0c as u32, asm_inthandler0c, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x0d] = DscTbl::set_fn_gatedesc(0x0d as u32, asm_inthandler0d, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x0e] = DscTbl::set_fn_gatedesc(0x0e as u32, asm_inthandler0e, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x10] = DscTbl::set_fn_gatedesc(0x10 as u32, asm_inthandler10, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x11] = DscTbl::set_fn_gatedesc(0x11 as u32, asm_inthandler11, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x12] = DscTbl::set_fn_gatedesc(0x12 as u32, asm_inthandler12, 2 * 8, AR_INTGATE32);
+        gate_descriptor_table[0x13] = DscTbl::set_fn_gatedesc(0x13 as u32, asm_inthandler13, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x20] = DscTbl::set_fn_gatedesc(0x20 as u32, asm_inthandler20, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x21] = DscTbl::set_fn_gatedesc(0x21 as u32, asm_inthandler21, 2 * 8, AR_INTGATE32);
         gate_descriptor_table[0x27] = DscTbl::set_fn_gatedesc(0x27 as u32, asm_inthandler27, 2 * 8, AR_INTGATE32);

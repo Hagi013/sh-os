@@ -1,110 +1,259 @@
 
 bits 32
 
-;global io_hlt, io_cli, io_sti, io_sticli
-;global io_in8, io_in16, io_in32
-;global io_out8, io_out16, io_out32
-;global io_load_eflags, io_store_eflags
-;global load_gdtr, load_idtr
-;global load_cr0, store_cr0
-;global load_tr
 ;global far_jmp
-global asm_inthandler20, asm_inthandler21, asm_inthandler27, asm_inthandler2c
+global asm_inthandler02, asm_inthandler04, asm_inthandler05, asm_inthandler06, asm_inthandler07, asm_inthandler08, asm_inthandler0a, asm_inthandler0b, asm_inthandler0c, asm_inthandler0d
+global asm_inthandler0e, asm_inthandler10, asm_inthandler11, asm_inthandler12, asm_inthandler13, asm_inthandler14, asm_inthandler20, asm_inthandler21, asm_inthandler27, asm_inthandler2c
+extern non_maskable_interrupt_handler, overflow_handler, bounds_check_handler, undefined_operation_code_instruction_handler, no_coprocessor_handler, double_fault_handler, invalid_tss_handler
+extern segment_not_present_handler, stack_segment_fault_handler, general_protection_error_handler, page_fault_handler, coprocessor_error_handler, alignment_check_error_handler, machine_check_handler
+extern simd_fpu_exception_handler
 extern inthandler20, inthandler21, inthandler27, inthandler2c
 
 section .text
 
-;io_hlt:
-;    hlt
-;    ret
-;
-;io_cli:
-;    cli
-;    ret
-;
-;io_sti:
-;    sti
-;    ret
-;
-;io_stihlt:
-;    sti
-;    hlt
-;    ret
-;
-;io_in8:     ; io_in8(port: u16)
-;    mov     edx, [esp+4]    ; port
-;    mov     eax, 0
-;    in      al, dx          ; dxで指定したポートからalにバイトを入力する
-;    ret
-;
-;io_in16:     ; io_in8(port: u32)
-;    mov     edx, [esp+4]
-;    mov     eax, 0
-;    in      ax, dx          ; dxで指定したポートからaxにワードを入力する
-;    ret
-;
-;io_in32:
-;    mov     edx, [esp+4]
-;    in      eax, dx         ; dxで指定したポートからeaxにダブルワードを入力する
-;    ret
-;
-;io_out8:    ; io_out(port: u32, data: u8)
-;    mov     edx, [esp+4]    ; port
-;    mov     al, [esp+8]     ; data
-;    out     dx, al
-;    ret
-;
-;io_out16:
-;    mov     edx, [esp+4]
-;    mov     ax, [esp+8]
-;    out     dx, ax
-;    ret
-;
-;io_out32:
-;    mov     edx, [esp+4]
-;    mov     eax, [esp+4]
-;    out     dx, eax
-;    ret
-;
-;io_load_eflags: ; io_load_eflags(void) -> u32
-;    pushfd
-;    pop     eax
-;    ret
-;
-;io_store_eflags: ; io_store_eflags(eflags: u32)
-;    mov     eax, [esp+4]
-;    push    eax
-;    popfd
-;    ret
-;
-;load_gdtr:  ; load_gdtr(limit: u32, addr: u32)
-;    mov     ax, [esp+4]     ; limit
-;    mov     [esp+6], ax
-;    lgdt    [esp+6]
-;    ret
-;
-;load_idtr:  ; load_idtr(limit: u32, addr: u32)
-;    mov     ax, [esp+4]
-;    mov     [esp+6], ax
-;    lidt    [esp+6]
-;    ret
-;
-;load_cr0:   ; load_cr0(void) -> u32
-;    mov     eax, cr0
-;    ret
-;
-;store_cr0:  ; store_cr0(cr0: u32)
-;    mov     eax, [esp+4]
-;    mov     cr0, eax
-;    ret
-;
-;load_tr:    ; load_tr(tr: u32)
-;    ltr     [esp+4]
-;    ret
-;
 ;farjmp:     ; farjmp(eip: u32, cs: u32)
 ;    jmp far [esp+4]     ; eip, cs. JMP FARはfar jmpさせるための命令。CPUは指定番地からまず4バイト読み込んんで、その値をEIPに入れる
 ;    ret                 ; さらにその隣の2バイトも読み込んでCSに入れる
+
+asm_inthandler02:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call non_maskable_interrupt_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler04:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call overflow_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler05:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call bounds_check_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler06:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call undefined_operation_code_instruction_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler07:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call no_coprocessor_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler08:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call double_fault_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler0a:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call invalid_tss_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler0b:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call segment_not_present_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler0c:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call stack_segment_fault_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler0d:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call general_protection_error_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler0e:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call page_fault_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler10:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call coprocessor_error_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler11:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call alignment_check_error_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler12:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call machine_check_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
+
+asm_inthandler13:
+    push es
+    push ds
+    pushad
+    mov eax, esp
+    push eax
+    mov ax, ss
+    mov ds, ax
+    mov es, ax
+    call simd_fpu_exception_handler
+    pop eax
+    popad
+    pop ds
+    pop es
+    iretd
 
 asm_inthandler20:
     push es
