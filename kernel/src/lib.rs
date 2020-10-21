@@ -27,7 +27,7 @@ use alloc::string::String;
 use alloc::string::ToString;
 
 #[allow(unused_imports)]
-#[cfg(all(not(test), target_arch = "x86"))]
+// #[cfg(all(not(test), target_arch = "x86"))]
 #[macro_use]
 pub mod arch;
 use arch::boot_info::BootInfo;
@@ -40,6 +40,7 @@ use arch::pic;
 use arch::keyboard;
 use arch::mouse;
 use arch::timer::{ timer_init, get_uptime };
+use arch::paging::{PageTableImpl, init_paging};
 
 pub mod window;
 use window::{ Window, WindowsManager };
@@ -50,9 +51,15 @@ use sync::queue;
 #[allow(unused_imports)]
 pub mod allocator;
 use allocator::LockedHeap;
+use allocator::frame_allocator::LockedFrameHeap;
 
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap;
+static mut ALLOCATOR: LockedHeap = LockedHeap;
+lazy_static! {
+    static ref TABLE_ALLOCATOR: LockedFrameHeap = {
+        LockedFrameHeap::new()
+    };
+}
 
 #[allow(unused_imports)]
 pub mod spin;
@@ -68,17 +75,32 @@ use util::lazy_static::*;
 use alloc::collections::vec_deque::VecDeque;
 use core::borrow::Borrow;
 
+pub mod execption;
+
 fn init_heap() {
-    let heap_start: usize = 0x00400000;
+    // let heap_start: usize = 0x00400000;
+    // let heap_start: usize = 0x00800000;
    // let heap_end: usize = 0xbfffffff;
 //    let heap_start: usize = 0x00800000;
 //     let heap_end: usize = 0x01ff0000;
+
+    // let heap_start: usize = 0x00800000;
+    // let heap_end: usize = 0x3fff0000;
+    let heap_start: usize = 0x00e00000;
     let heap_end: usize = 0x3fff0000;
 
     let heap_size: usize = heap_end - heap_start;
     let mut printer = Printer::new(0, 80, 10);
     write!(printer, "{:x}", heap_size).unwrap();
-    ALLOCATOR.init(heap_start, heap_size);
+    unsafe { ALLOCATOR.init(heap_start, heap_size) };
+}
+
+fn init_table_allocator() {
+    // let heap_start: usize = 0x00400000;
+    let heap_start: usize = 0x00a00000;
+    let heap_size: usize = 1024 * 1024 * 4; // 4MB
+    Graphic::putfont_asc(0, 95, 10, "aaaaaaa");
+    unsafe { TABLE_ALLOCATOR.init(heap_start, heap_size); }
 }
 
 #[cfg(not(test))]
@@ -88,14 +110,25 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
 //pub extern fn init_os() {
 
     Graphic::init();
-    Graphic::putfont_asc(210, 150, 10, "rio-os");
-
+    // Graphic::putfont_asc(210, 150, 10, "rio-os");
     pic::init_pic();
     let dsc_tbl: DscTbl = DscTbl::init_gdt_idt();
     asmfunc::io_sti();
 
+    Graphic::putfont_asc(210, 60, 10, "-2-2-2-2");
     init_heap();
+    Graphic::putfont_asc(210, 85, 10, "-1-1-1-1");
+    init_table_allocator();
+    // {
+    //     let page_tmpl_impl = unsafe { PageTableImpl::initialize(&*TABLE_ALLOCATOR, &ALLOCATOR) };
+    //     init_paging(page_tmpl_impl.unwrap());
+    // }
+    Graphic::putfont_asc(210, 100, 10, "0000");
+    let page_tmpl_impl = unsafe { PageTableImpl::initialize(&*TABLE_ALLOCATOR, &ALLOCATOR) };
+    init_paging(page_tmpl_impl.unwrap());
 
+
+    Graphic::putfont_asc(210, 150, 10, "rio-os");
     let mut window_manager: WindowsManager = WindowsManager::new();
     timer_init();
     keyboard::allow_pic1_keyboard_int();
@@ -106,6 +139,7 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
 
     let mut mouse_window: *mut Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
     let mut idx: u32 = 10;
+
     loop {
         asmfunc::io_cli();
         if !keyboard::is_existing() && !mouse::is_existing() {

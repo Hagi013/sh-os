@@ -172,6 +172,115 @@ pub fn store_cr0(cr0: u32) {
     }
 }
 
+pub fn set_pg_flag() {
+    unsafe {
+        // llvm_asm!("
+        //     push eax
+        //     mov eax, cr0
+        //     or eax, 0x80000000
+        //     mov cr0, eax
+        //     pop eax
+        //     jmp .a
+        // .a:
+        //     ret
+        // "
+        // :
+        // :
+        // :
+        // : "intel");
+        llvm_asm!("
+            push eax
+            mov eax, cr0
+            or eax, 0x80000000
+            mov cr0, eax
+            pop eax
+            ret
+        "
+        :
+        :
+        :
+        : "intel");
+    }
+}
+
+pub fn load_cr1() -> u32 {
+    let mut cr1: u32 = 0;
+    unsafe {
+        llvm_asm!("
+        mov eax, cr1
+        "
+        : "={eax}"(cr1)
+        :
+        :
+        : "intel");
+    }
+    return cr1;
+}
+
+pub fn store_cr1(cr1: u32) {
+    unsafe {
+        llvm_asm!("
+        mov cr1, eax
+        "
+        :
+        : "{eax}"(cr1)
+        :
+        : "intel");
+    }
+}
+
+pub fn load_cr2() -> u32 {
+    let mut cr2: u32 = 0;
+    unsafe {
+        llvm_asm!("
+        mov eax, cr2
+        "
+        : "={eax}"(cr2)
+        :
+        :
+        : "intel");
+    }
+    return cr2;
+}
+
+pub fn store_cr2(cr2: u32) {
+    unsafe {
+        llvm_asm!("
+        mov cr2, eax
+        "
+        :
+        : "{eax}"(cr2)
+        :
+        : "intel");
+    }
+}
+
+pub fn load_cr3() -> u32 {
+    let mut cr3: u32 = 0;
+    unsafe {
+        llvm_asm!("
+        mov eax, cr3
+        "
+        : "={eax}"(cr3)
+        :
+        :
+        : "intel");
+    }
+    return cr3;
+}
+
+pub fn store_cr3(cr3: u32) {
+    unsafe {
+        llvm_asm!("
+        mov cr3, eax
+        "
+        :
+        : "{eax}"(cr3)
+        :
+        : "intel");
+    }
+}
+
 pub fn load_tr(tr: u32) {
     unsafe {
         llvm_asm!("

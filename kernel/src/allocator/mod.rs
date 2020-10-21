@@ -11,6 +11,7 @@ pub mod slab;
 use self::slab::Slab;
 
 pub mod linked_list_allocator;
+pub mod frame_allocator;
 
 pub const NUM_OF_SLABS: usize = 8;
 pub const MIN_SLAB_SIZE: usize = 4096;

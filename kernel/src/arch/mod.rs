@@ -7,3 +7,4 @@ pub mod pic;
 pub mod keyboard;
 pub mod mouse;
 pub mod timer;
+pub mod paging;
