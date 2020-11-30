@@ -10,6 +10,8 @@
 #![feature(alloc_error_handler)]
 #![feature(panic_info_message)]
 #![feature(alloc)]
+#![feature(nonnull_slice_from_raw_parts)]
+#![feature(const_mut_refs)]
 
 
 use core::panic::PanicInfo;
@@ -221,6 +223,22 @@ fn alloc_error_handler(layout: Layout) -> ! {
     loop {
         asmfunc::io_hlt();
     }
+}
+
+#[no_mangle]
+pub extern "C" fn page_fault_handler(esp: *const usize) {
+    Graphic::putfont_asc(10, 345, 10, "Page Fault!!");
+    // let vir_address = asmfunc::load_cr2();
+    // {
+    //     if let Some(ref mut table) = *KERNEL_TABLE.lock() {
+    //             table.map(vir_address);
+    //     } else {
+    //             panic!("There is no Kernel Table.");
+    //     }
+    // }
+    // loop {
+    //     asmfunc::io_hlt();
+    // }
 }
 
 //#[cfg(test)]
