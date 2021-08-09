@@ -141,7 +141,7 @@ pub fn timer_init() {
 
 #[no_mangle]
 pub extern "C" fn inthandler20(esp: *const usize) {
-    Graphic::putfont_asc(210, 330, 10, "Timer Started!!");
+    // Graphic::putfont_asc(210, 330, 10, "Timer Started!!");
     asmfunc::io_out8(PIC0_OCW2, 0x60);
     // ひとまずuptimeを数える
     *COUNTER.lock() += 1;

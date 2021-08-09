@@ -42,7 +42,7 @@ use arch::pic;
 use arch::keyboard;
 use arch::mouse;
 use arch::timer::{ timer_init, get_uptime };
-use arch::paging::{PageTableImpl, init_paging};
+// use arch::paging::{PageTableImpl, init_paging};
 
 pub mod window;
 use window::{ Window, WindowsManager };
@@ -91,7 +91,7 @@ fn init_heap() {
     let heap_start: usize = 0x00e00000;
     let heap_end: usize = 0x3fff0000;
 
-    let heap_size: usize = heap_end - heap_start;
+    let heap_size: usize = heap_end - &heap_start;
     let mut printer = Printer::new(0, 80, 10);
     write!(printer, "{:x}", heap_size).unwrap();
     unsafe { ALLOCATOR.init(heap_start, heap_size) };
@@ -110,7 +110,6 @@ fn init_table_allocator() {
 #[no_mangle]
 pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
 //pub extern fn init_os() {
-
     Graphic::init();
     // Graphic::putfont_asc(210, 150, 10, "rio-os");
     pic::init_pic();
@@ -126,8 +125,8 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
     //     init_paging(page_tmpl_impl.unwrap());
     // }
     Graphic::putfont_asc(210, 100, 10, "0000");
-    let page_tmpl_impl = unsafe { PageTableImpl::initialize(&*TABLE_ALLOCATOR, &ALLOCATOR) };
-    init_paging(page_tmpl_impl.unwrap());
+    // let page_tmpl_impl = unsafe { PageTableImpl::initialize(&*TABLE_ALLOCATOR, &ALLOCATOR) };
+    // init_paging(page_tmpl_impl.unwrap());
 
 
     Graphic::putfont_asc(210, 150, 10, "rio-os");

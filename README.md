@@ -145,4 +145,14 @@ delete breakp
 
 ```
 
+- intel記法で表示させたい([ref](http://bttb.s1.valueserver.jp/wordpress/blog/2017/10/07/gdbで初期設定をatt記法からintel記法に変更する方法/))
+```
+set disassembly-flavor intel
+
+show disassembly-flavor
+
+# defaultを変更したい場合
+echo set disassembly-flavor intel > ~/.gdbinit
+```
+
 

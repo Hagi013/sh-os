@@ -132,7 +132,8 @@ pipelineflush:
 
         mov     esi, initos         ; 転送元
         mov     edi, INITOS         ; 転送先
-        mov     ecx, 512*1024*4
+;        mov     ecx, 512*1024*4
+        mov     ecx, 2048*1024*4    ; 2MB
         call    memcpy
 
 ; ついでにディスクデータも本来の位置へ転送
