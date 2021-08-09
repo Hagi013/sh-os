@@ -79,6 +79,12 @@ use core::borrow::Borrow;
 
 pub mod execption;
 
+#[allow(unused_imports)]
+pub mod driver;
+use driver::net;
+use driver::bus::pci;
+
+
 fn init_heap() {
     // let heap_start: usize = 0x00400000;
     // let heap_start: usize = 0x00800000;
@@ -139,10 +145,21 @@ pub extern fn init_os(argc: isize, argv: *const *const u8) -> isize {
     let mouse_state = mouse.init_mouse_cursor(14);
 
     let mut mouse_window: *mut Window = window_manager.create_window(mouse_state.1, mouse_state.2, mouse_state.3, mouse_state.4, mouse_state.0).unwrap();
+
+    pci::dump_vid_did();
+    // pci::dump_command_status();
+    pci::dump_bar(); //
+    // pci::test_nic_set();
+    // pci::set_pci_intr_disable();
+    pci::set_bus_master_en();
+    pci::nic_init();
+    pci::tx_init();
+
     let mut idx: u32 = 10;
 
     loop {
         asmfunc::io_cli();
+        let frame = pci::receive_frame();
         if !keyboard::is_existing() && !mouse::is_existing() {
             asmfunc::io_stihlt();
             continue;

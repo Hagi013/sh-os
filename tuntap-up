@@ -1,0 +1,14 @@
+#!/bin/bash
+
+TAPDEV="tap0"
+BRIDGEDEV="bridge1"
+
+ifconfig ${BRIDGEDEV} create
+ifconfig ${BRIDGEDEV} 0.0.0.0 up
+ifconfig ${BRIDGEDEV} addm en0
+ifconfig ${BRIDGEDEV} addm ${TAPDEV}
+ifconfig ${BRIDGEDEV} up
+
+sysctl -w net.link.ether.inet.proxyall=1
+sysctl -w net.inet.ip.forwarding=1
+# sysctl -w net.inet.ip.fw.enable=1

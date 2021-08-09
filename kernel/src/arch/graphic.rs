@@ -51,7 +51,7 @@ impl Graphic {
 
         for rgb in RGB::iterator() {
             asmfunc::io_out8(0x03c9, (rgb.r() >> 2) as u8);
-            asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as u8);
+            asmfunc::io_out8(0x03c9, (rgb.g() >> 2) as u8);
             asmfunc::io_out8(0x03c9, (rgb.b() >> 2) as u8);
         }
          asmfunc::io_store_eflags(eflags);
@@ -328,4 +328,10 @@ impl fmt::Write for Printer {
         Graphic::putfont_asc(self.width, self.height, self.color, s);
         Ok(())
     }
+}
+
+
+pub fn print_str(width: u32, height: u32, s: &str, color: u8) {
+    let mut p = Printer::new(width, height, color);
+    write!(p, "{:?}", s).unwrap();
 }

@@ -9,6 +9,8 @@ BUILD_MODE=debug
 
 DEBUG := -S -gdb tcp::9000
 
+QEMUNET = -netdev type=tap,id=net0,script=tuntap-up,downscript=./tuntap-down -device e1000,netdev=net0 -object filter-dump,id=f1,netdev=net0,file=dump.dat
+
 asm:	$(BUILD_DIR)/ipl.bin \
  	$(BUILD_DIR)/secondboot.bin
 
@@ -40,7 +42,14 @@ $(BUILD_DIR)/secondboot.bin: kernel/boot
 	nasm -f elf32 ./kernel/boot/asmfunc.asm -o ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.o -l ./kernel/target/$(TARGET_ARCH_i686)/$(BUILD_MODE)/$*.lst
 
 qemu:
-	qemu-system-$(QEMU_ARCH_i686) -m 4096 -rtc base=localtime -vga std -fda $(BUILD_DIR)/$(BUILD_NAME).img -monitor stdio $(DEBUG)
+	sudo qemu-system-$(QEMU_ARCH_i686) \
+		-m 4096 \
+		-rtc base=localtime \
+		-vga std \
+		-fda $(BUILD_DIR)/$(BUILD_NAME).img \
+		-monitor stdio \
+		$(QEMUNET) \
+		$(DEBUG)
 
 clean:
 	rm -rf ./dist/*

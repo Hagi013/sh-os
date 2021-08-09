@@ -41,6 +41,34 @@ pub fn io_in8(port: i32) -> i32 {
     return res;
 }
 
+pub fn io_in16(port: i32) -> i32 {
+    let mut res: i32 = 0;
+    unsafe {
+        llvm_asm!("
+        mov eax, 0
+        in ax, dx"
+        : "={eax}"(res) // Output Operand
+        : "{edx}"(port) // Input Operand
+        : "memory"      // 変更される可能性があるレジスタ
+        : "intel");     // Option
+    }
+    return res;
+}
+
+pub fn io_in32(port: i32) -> i32 {
+    let mut res: i32 = 0;
+    unsafe {
+        llvm_asm!("
+        mov eax, 0
+        in eax, dx"
+        : "={eax}"(res) // Output Operand
+        : "{edx}"(port) // Input Operand
+        : "memory"      // 変更される可能性があるレジスタ
+        : "intel");     // Option
+    }
+    return res;
+}
+
 //pub fn io_out8(port: i32, data: i32) {
 pub fn io_out8(port: i32, data: u8) {
     unsafe {
@@ -49,6 +77,18 @@ pub fn io_out8(port: i32, data: u8) {
         "
         : // output
         : "{edx}"(port), "{al}"(data) // input
+        :
+        : "intel");
+    }
+}
+
+pub fn io_out32(port: i32, data: i32) {
+    unsafe {
+        llvm_asm!("
+        out dx, al
+        "
+        : // output
+        : "{edx}"(port), "{eax}"(data) // input
         :
         : "intel");
     }
